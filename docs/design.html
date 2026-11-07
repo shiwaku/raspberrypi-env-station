@@ -124,7 +124,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
   <header>
     <span class="eyebrow">raspberrypi-env-station · 2026-11-07</span>
     <h1>raspberrypi-env-station 設計図</h1>
-    <p class="lead">室内に置いた Raspberry Pi 4 で CO2・温度・湿度を記録し、気象庁の防災情報 XML とみちびきの災危通報を受け取る。結果は室内の大型モニターに、高解像度降水ナウキャストを重ねた地図とグラフとして常時表示する。</p>
+    <p class="lead">室内に置いた Raspberry Pi 4 で CO2・温度・湿度を記録し、気象庁の防災情報 XML とみちびきの災危通報を受け取る。結果は、帰宅に使う鉄道の運行状況や、よく使う便の遅延・欠航とあわせて、室内の大型モニターに地図とグラフで常時表示する。</p>
   </header>
 
   <!-- 1. 受信のしくみ -->
@@ -199,11 +199,57 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <p class="caption">CO2 センサー（SCD40）は別の GPIO ピンにつなぐので、この流れとは独立して動く。</p>
   </section>
 
-  <!-- 2. システム構成 -->
+  <!-- 2. 画面構成 -->
+  <section>
+    <div class="sec-head"><h2>モニターの画面構成</h2><span class="tag">60 インチ以上・1920×1080・3〜5m から読む</span></div>
+    <div class="figure">
+      <svg viewBox="0 0 800 450" role="img" aria-label="大型モニターの画面構成。左に地図と警報一覧、右に CO2 の現在値とグラフ、鉄道の運行状況、飛行機の出発便">
+        <rect x="1" y="1" width="798" height="448" rx="10" class="box"/>
+        <!-- 地図 -->
+        <rect x="16" y="16" width="470" height="300" rx="6" class="sky"/>
+        <text x="32" y="42" font-size="14" font-weight="700">地図</text>
+        <text x="32" y="62" font-size="12" class="muted">高解像度降水ナウキャスト・設置場所</text>
+        <circle cx="250" cy="170" r="7" class="acc"/>
+        <ellipse cx="320" cy="140" rx="70" ry="38" fill="var(--wire-blue)" fill-opacity=".25"/>
+        <ellipse cx="350" cy="150" rx="34" ry="18" fill="var(--wire-blue)" fill-opacity=".35"/>
+        <text x="32" y="300" font-size="11" class="muted">出典表示（気象庁・背景地図）</text>
+        <!-- 警報 -->
+        <rect x="16" y="328" width="470" height="106" rx="6" class="box-warn"/>
+        <text x="32" y="354" font-size="14" font-weight="700">警報・注意報・災危通報</text>
+        <text x="32" y="378" font-size="12" class="muted">気象庁 XML（設置場所の地域）</text>
+        <text x="32" y="398" font-size="12" class="muted">災危通報（インターネットが止まっても届く）</text>
+        <!-- CO2 -->
+        <rect x="502" y="16" width="282" height="120" rx="6" class="box-acc"/>
+        <text x="518" y="40" font-size="12" class="muted">CO2</text>
+        <text x="518" y="92" font-size="44" font-weight="700">612</text>
+        <text x="618" y="92" font-size="14" class="muted">ppm</text>
+        <text x="518" y="122" font-size="12" class="muted">22.4 ℃ ・ 41.8 %</text>
+        <!-- グラフ -->
+        <rect x="502" y="146" width="282" height="100" rx="6" class="box"/>
+        <text x="518" y="168" font-size="12" class="muted">直近 24 時間の推移</text>
+        <path d="M518 228 L560 220 L600 206 L640 214 L680 190 L720 198 L766 184" class="flow"/>
+        <!-- 鉄道 -->
+        <rect x="502" y="256" width="282" height="86" rx="6" class="box"/>
+        <text x="518" y="278" font-size="12" class="muted">鉄道（帰宅に使う路線）</text>
+        <rect x="518" y="288" width="250" height="20" rx="3" class="box-acc"/>
+        <text x="526" y="303" font-size="11">A 線　平常運転</text>
+        <rect x="518" y="314" width="250" height="20" rx="3" class="box-warn"/>
+        <text x="526" y="329" font-size="11">B 線　遅延（10 分）</text>
+        <!-- 飛行機 -->
+        <rect x="502" y="352" width="282" height="82" rx="6" class="box"/>
+        <text x="518" y="374" font-size="12" class="muted">飛行機（よく使う行き先の出発便）</text>
+        <text x="518" y="398" font-size="11" class="mono">10:30 羽田　定刻</text>
+        <text x="518" y="418" font-size="11" class="mono warn">11:00 羽田　欠航</text>
+      </svg>
+    </div>
+    <p class="caption">値・路線名・便は表示例。時間帯で配置を変えることも検討する（夕方〜夜は鉄道を大きく、日中はナウキャストと CO2 を主に）。鉄道と飛行機はデータの入手先を調査中（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</p>
+  </section>
+
+  <!-- 3. システム構成 -->
   <section>
     <div class="sec-head"><h2>システム構成</h2><span class="tag">入力 → Pi 上のプログラム → 出力</span></div>
     <div class="figure">
-      <svg viewBox="0 0 880 490" role="img" aria-label="SCD40 と設定ファイルから env-station、MAX-M10S から qzss_dcr へ流れ、グラフと災危通報表示に至る構成">
+      <svg viewBox="0 0 880 580" role="img" aria-label="SCD40 と設定ファイルから env-station、MAX-M10S から qzss_dcr へ、気象庁 XML と交通データから各取得プログラムへ流れ、ダッシュボードに至る構成">
         <defs>
           <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker>
           <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow-muted"/></marker>
@@ -228,7 +274,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <text x="34" y="338" font-size="12" class="muted">L1S 対応</text>
         <text x="34" y="354" font-size="11" class="mono muted">UART /dev/serial0</text>
 
-        <rect x="226" y="36" width="466" height="440" rx="10" class="pcb" fill-opacity=".45"/>
+        <rect x="226" y="36" width="466" height="530" rx="10" class="pcb" fill-opacity=".45"/>
 
         <rect x="250" y="56" width="240" height="120" rx="6" class="box-acc"/>
         <text x="266" y="82" font-size="14" font-weight="700">env-station（計測ループ）</text>
@@ -278,6 +324,19 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <path d="M190 422 H250" class="flow-plan" marker-end="url(#ahm)"/>
         <text x="198" y="415" font-size="11" class="mono muted">XML</text>
         <path d="M670 422 H790 V356" class="flow-plan" marker-end="url(#ahm)"/>
+
+        <rect x="20" y="478" width="170" height="80" rx="6" class="box-plan"/>
+        <text x="34" y="502" font-size="13" font-weight="700">鉄道・飛行機の運行情報</text>
+        <text x="34" y="522" font-size="12" class="muted">ODPT など（調査中）</text>
+        <text x="34" y="542" font-size="11" class="mono muted">共用 Wi-Fi → インターネット</text>
+
+        <rect x="250" y="478" width="420" height="80" rx="6" class="box-plan"/>
+        <text x="266" y="502" font-size="14" font-weight="700">transit-feed（未実装）</text>
+        <text x="266" y="522" font-size="12" class="muted">帰宅に使う路線の運行状況と、よく使う行き先の</text>
+        <text x="266" y="540" font-size="12" class="muted">出発便の遅延・欠航を取得する</text>
+
+        <path d="M190 518 H250" class="flow-plan" marker-end="url(#ahm)"/>
+        <path d="M670 518 H874 V118 H866" class="flow-plan" marker-end="url(#ahm)"/>
       </svg>
     </div>
     <p class="caption">実線は実装済み・入手済み、破線は未実装・未購入。設置場所は動かないので GPS では測らない。</p>
@@ -290,7 +349,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     </div>
   </section>
 
-  <!-- 3. 配線 -->
+  <!-- 4. 配線 -->
   <section>
     <div class="sec-head"><h2>配線</h2><span class="tag">GPIO 40 ピンのうち 1〜18 番を使う</span></div>
     <div class="figure narrow">
@@ -362,7 +421,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <p class="caption">TX と RX は交差させる（モジュールの TX → Pi の RXD）。※ スイッチサイエンス製モジュールのピン名と電源電圧は商品ページで確認できていないので、届いたら基板の表示と資料で確かめる。SCD40 の線の色は付属コードからの推定。</p>
   </section>
 
-  <!-- 4. ソフトウェア -->
+  <!-- 5. ソフトウェア -->
   <section>
     <div class="sec-head"><h2>ソフトウェア構成</h2><span class="tag">uv · Python 3.15 · Ruff · pytest</span></div>
     <div class="grid2">
@@ -385,6 +444,11 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <h3>気象庁 XML（未実装）</h3>
         <p class="mono" style="font-size:13px">jma-feed</p>
         <p><code>extra.xml</code>（警報・注意報）と <code>eqvol.xml</code>（地震・火山）を毎分確かめ、新しい電文だけ取得して設置場所の地域で絞る。</p>
+      </div>
+      <div class="card">
+        <h3>鉄道・飛行機（調査中）</h3>
+        <p class="mono" style="font-size:13px">transit-feed</p>
+        <p>帰宅に使う路線の運行状況（平常・遅延・運転見合わせ）と、最寄り空港からよく使う行き先への出発便の遅延・欠航を取る。データの入手先と利用条件を調べてから作る（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</p>
       </div>
       <div class="card">
         <h3>Web ダッシュボード（未実装）</h3>
@@ -434,14 +498,13 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
   <section>
     <div class="sec-head"><h2>進め方</h2><span class="tag">上から順に</span></div>
     <ol class="steps">
-      <li>コワーキングの運営者に、共用 Wi-Fi につなぐ条件（端末の登録、認証方式、ブラウザでのログイン画面の有無、常時接続機器を置いてよいか）を確認する。</li>
-      <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する（SSH は無効のまま）。</li>
-      <li>SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめる。</li>
-      <li><code>config.toml</code> の <code>[station]</code> に設置場所の緯度経度を書き、<code>env-station</code> で計測を始める。</li>
-      <li>MAX-M10S モジュールとアンテナを買い、UART で配線して qzss_dcr で受信を確かめる。</li>
-      <li>Pi 上で Web ダッシュボード（地図にナウキャストと設置場所、CO2・温湿度のグラフ）を作り、起動時に大型モニターへ全画面で映るようにする。</li>
-      <li>気象庁 XML の取得（jma-feed）を作り、設置場所の地域コードで警報・注意報を絞る。</li>
-      <li>env-station・jma-feed・qzss_dcr を systemd で起動時に自動で動くようにする。</li>
+      <li>コワーキングの運営者に、共用 Wi-Fi につなぐ条件（端末の登録、認証方式、ブラウザでのログイン画面の有無、常時接続機器を置いてよいか）を確認する（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/2">#2</a>）。電源・ケーブル・キーボードなど周辺機材の有無も確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/3">#3</a>）。</li>
+      <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する（SSH は無効のまま）。SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめ、<code>env-station</code> で計測を始める（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/4">#4</a>）。</li>
+      <li>MAX-M10S モジュールとアンテナを買い（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/5">#5</a>）、UART で配線して qzss_dcr で受信を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/6">#6</a>）。</li>
+      <li>ナウキャストの地図タイルの利用条件を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/7">#7</a>）。気象庁 XML の取得（jma-feed）を作り、設置場所の地域コードで警報・注意報を絞る（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/8">#8</a>）。</li>
+      <li>鉄道（帰宅に使う路線）と飛行機（よく使う行き先の出発便）のデータの入手先を調べる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</li>
+      <li>Web ダッシュボードを作り（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/9">#9</a>）、起動時に大型モニターへ全画面で映るようにする（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/10">#10</a>）。</li>
+      <li>env-station・jma-feed・transit-feed・qzss_dcr を systemd で起動時に自動で動くようにする（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/11">#11</a>）。</li>
     </ol>
   </section>
 </div>
