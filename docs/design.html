@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>raspberrypi-env-station 設計図</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 1 カラムの技術ドキュメント。図は横スクロール可能な枠に入れ、本文は 70 字幅 */
+:root {
+  --bg: #f5f7f6;
+  --surface: #ffffff;
+  --fg: #18211d;
+  --muted: #5b6862;
+  --line: #c9d3ce;
+  --accent: #1f7a55;      /* 基板の緑 */
+  --accent-soft: #e2f0e9;
+  --warn: #a35a00;
+  --warn-soft: #fbefdc;
+  --wire-red: #d0342c;
+  --wire-black: #2a2a2a;
+  --wire-blue: #2563c9;
+  --wire-yellow: #c99a00;
+  --wire-green: #16855a;
+  --wire-orange: #d4661c;
+  --sky: #e6eef8;
+  --font-body: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #19201c; --fg: #e3ebe6; --muted: #98a69f; --line: #34413a;
+    --accent: #5cc796; --accent-soft: #1d3329; --warn: #f0a94a; --warn-soft: #3a2a14;
+    --wire-red: #ff6b5f; --wire-black: #c8ceca; --wire-blue: #6ea2ff; --wire-yellow: #f2c94c;
+    --wire-green: #4fd39a; --wire-orange: #ff9d57; --sky: #1a2533;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #19201c; --fg: #e3ebe6; --muted: #98a69f; --line: #34413a;
+  --accent: #5cc796; --accent-soft: #1d3329; --warn: #f0a94a; --warn-soft: #3a2a14;
+  --wire-red: #ff6b5f; --wire-black: #c8ceca; --wire-blue: #6ea2ff; --wire-yellow: #f2c94c;
+    --wire-green: #4fd39a; --wire-orange: #ff9d57; --sky: #1a2533;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.75;
+}
+.wrap {
+  max-width: 920px; margin: 0 auto;
+  padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 48px;
+}
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
+h1 { font-size: 30px; line-height: 1.3; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; max-width: 70ch; }
+.lead { color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.sec-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.sec-head .tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.figure {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  overflow-x: auto; padding: 16px;
+}
+.figure svg { display: block; min-width: 720px; width: 100%; height: auto; }
+.figure.narrow svg { min-width: 560px; }
+.caption { font-size: 13px; color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: .92em; }
+code { background: var(--accent-soft); padding: 1px 5px; border-radius: 3px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: .04em; }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--font-mono); }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--accent-soft); color: var(--accent); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.todo { border: 1px solid var(--line); color: var(--muted); }
+.callout {
+  border-left: 3px solid var(--warn); background: var(--warn-soft);
+  padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; border-radius: 0 6px 6px 0;
+}
+.callout h3 { color: var(--warn); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+ol.steps { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+
+/* SVG */
+svg text { font-family: var(--font-body); fill: var(--fg); }
+svg .mono { font-family: var(--font-mono); }
+svg .muted { fill: var(--muted); }
+svg .box { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+svg .box-acc { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+svg .box-warn { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+svg .box-plan { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+svg .flow { stroke: var(--fg); stroke-width: 1.5; fill: none; }
+svg .flow-plan { stroke: var(--muted); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+svg .arrow { fill: var(--fg); }
+svg .arrow-muted { fill: var(--muted); }
+svg .pcb { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+svg .pin { fill: var(--surface); stroke: var(--muted); stroke-width: 1.2; }
+svg .pin-used { stroke-width: 2.4; }
+svg .acc { fill: var(--accent); }
+svg .warn { fill: var(--warn); }
+svg .sky { fill: var(--sky); stroke: var(--line); }
+svg .sig { stroke: var(--accent); stroke-width: 1.5; fill: none; stroke-dasharray: 2 5; stroke-linecap: round; }
+svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: round; }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">raspberrypi-env-station · 2026-11-07</span>
+    <h1>raspberrypi-env-station 設計図</h1>
+    <p class="lead">室内に置いた Raspberry Pi 4 で CO2・温度・湿度を記録し、気象庁の防災情報 XML とみちびきの災危通報を受け取る。結果は室内の大型モニターに、高解像度降水ナウキャストを重ねた地図とグラフとして常時表示する。</p>
+  </header>
+
+  <!-- 1. 受信のしくみ -->
+  <section>
+    <div class="sec-head"><h2>災危通報を受信するしくみ</h2><span class="tag">衛星 → アンテナ → 受信モジュール → Pi</span></div>
+    <p>MAX-M10S モジュールは、衛星の電波を数字のデータに変える部品。電波を拾うのは別売りのアンテナで、モジュールが解読した結果をジャンパーワイヤー 4 本で Pi に送る。Pi から見ると、シリアルポート <code>/dev/serial0</code> にデータが流れてくるだけになる。</p>
+    <div class="figure">
+      <svg viewBox="0 0 900 340" role="img" aria-label="みちびき衛星の L1S 信号をアンテナが受け、ケーブルで MAX-M10S モジュールへ、ジャンパーワイヤー 4 本で Raspberry Pi 4 へ送り、qzss_dcr が日本語の災危通報にする流れ">
+        <defs>
+          <marker id="ah0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker>
+        </defs>
+        <!-- 空 -->
+        <rect x="10" y="10" width="200" height="300" rx="8" class="sky"/>
+        <text x="24" y="34" font-size="12" class="muted">屋外（空）</text>
+        <g transform="translate(66 52)">
+          <rect x="18" y="10" width="28" height="20" rx="3" class="box-acc"/>
+          <rect x="-8" y="14" width="22" height="12" class="box"/>
+          <rect x="50" y="14" width="22" height="12" class="box"/>
+        </g>
+        <text x="40" y="104" font-size="13" font-weight="700">みちびき衛星</text>
+        <text x="40" y="122" font-size="11" class="muted">L1S 信号で災危通報を</text>
+        <text x="40" y="138" font-size="11" class="muted">常に放送（4 秒ごと）</text>
+        <path d="M100 150 L250 234" class="sig"/>
+        <path d="M112 150 L262 230" class="sig"/>
+
+        <!-- 窓 -->
+        <rect x="214" y="10" width="8" height="300" class="box"/>
+        <text x="206" y="328" font-size="11" class="muted">窓</text>
+
+        <!-- アンテナ -->
+        <rect x="236" y="232" width="56" height="34" rx="8" class="box"/>
+        <text x="236" y="290" font-size="13" font-weight="700">アンテナ</text>
+        <text x="236" y="306" font-size="11" class="muted">窓際に置く・別売り</text>
+
+        <!-- SMA ケーブル -->
+        <path d="M292 249 C340 249 340 150 380 150" class="cable"/>
+        <text x="312" y="214" font-size="11" class="mono muted">SMA ケーブル</text>
+
+        <!-- モジュール -->
+        <rect x="392" y="106" width="150" height="96" rx="6" class="box-acc"/>
+        <rect x="380" y="142" width="14" height="16" class="box"/>
+        <text x="406" y="132" font-size="13" font-weight="700">MAX-M10S</text>
+        <text x="406" y="150" font-size="11" class="muted">モジュール</text>
+        <text x="406" y="170" font-size="11" class="muted">電波を解読して</text>
+        <text x="406" y="186" font-size="11" class="muted">UBX データにする</text>
+        <text x="392" y="226" font-size="11" class="muted">スイッチサイエンス 10437</text>
+
+        <!-- ジャンパー 4 本 -->
+        <path d="M542 124 H640" stroke="var(--wire-red)" stroke-width="3"/>
+        <path d="M542 142 H640" stroke="var(--wire-black)" stroke-width="3"/>
+        <path d="M542 160 H640" stroke="var(--wire-green)" stroke-width="3"/>
+        <path d="M542 178 H640" stroke="var(--wire-orange)" stroke-width="3"/>
+        <text x="552" y="98" font-size="11" class="muted">ジャンパー 4 本</text>
+        <text x="552" y="113" font-size="10" class="mono muted">電源・GND・TX・RX</text>
+
+        <!-- Pi -->
+        <rect x="640" y="86" width="250" height="140" rx="8" class="pcb"/>
+        <text x="656" y="110" font-size="13" font-weight="700">Raspberry Pi 4</text>
+        <text x="656" y="128" font-size="11" class="mono muted">/dev/serial0（UART）</text>
+        <rect x="656" y="142" width="218" height="66" rx="6" class="box"/>
+        <text x="670" y="166" font-size="13" font-weight="700">qzss_dcr</text>
+        <text x="670" y="184" font-size="11" class="muted">UBX から通報を取り出し</text>
+        <text x="670" y="200" font-size="11" class="muted">日本語に変換</text>
+
+        <!-- 出力 -->
+        <path d="M765 226 V256" class="flow" marker-end="url(#ah0)"/>
+        <rect x="656" y="258" width="218" height="52" rx="6" class="box"/>
+        <text x="670" y="280" font-size="12" font-weight="700">例: 災危通報(気象)(発表)</text>
+        <text x="670" y="298" font-size="11" class="muted">画面表示・ログ・通知</text>
+      </svg>
+    </div>
+    <p class="caption">CO2 センサー（SCD40）は別の GPIO ピンにつなぐので、この流れとは独立して動く。</p>
+  </section>
+
+  <!-- 2. システム構成 -->
+  <section>
+    <div class="sec-head"><h2>システム構成</h2><span class="tag">入力 → Pi 上のプログラム → 出力</span></div>
+    <div class="figure">
+      <svg viewBox="0 0 880 490" role="img" aria-label="SCD40 と設定ファイルから env-station、MAX-M10S から qzss_dcr へ流れ、グラフと災危通報表示に至る構成">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker>
+          <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow-muted"/></marker>
+        </defs>
+        <text x="20" y="24" class="muted" font-size="12">入力</text>
+        <text x="236" y="24" class="muted" font-size="12">Raspberry Pi 4 Model B</text>
+        <text x="716" y="24" class="muted" font-size="12">出力</text>
+
+        <rect x="20" y="44" width="170" height="70" rx="6" class="box"/>
+        <text x="34" y="70" font-size="14" font-weight="700">SCD40</text>
+        <text x="34" y="90" font-size="12" class="muted">CO2・温度・湿度</text>
+        <text x="34" y="106" font-size="11" class="mono muted">I2C 0x62</text>
+
+        <rect x="20" y="146" width="170" height="70" rx="6" class="box"/>
+        <text x="34" y="172" font-size="14" font-weight="700">config.toml</text>
+        <text x="34" y="192" font-size="12" class="muted">設置場所の緯度経度</text>
+        <text x="34" y="208" font-size="11" class="mono muted">[station]</text>
+
+        <rect x="20" y="276" width="170" height="86" rx="6" class="box-plan"/>
+        <text x="34" y="302" font-size="14" font-weight="700">MAX-M10S</text>
+        <text x="34" y="322" font-size="12" class="muted">＋ アンテナ（未購入）</text>
+        <text x="34" y="338" font-size="12" class="muted">L1S 対応</text>
+        <text x="34" y="354" font-size="11" class="mono muted">UART /dev/serial0</text>
+
+        <rect x="226" y="36" width="466" height="440" rx="10" class="pcb" fill-opacity=".45"/>
+
+        <rect x="250" y="56" width="240" height="120" rx="6" class="box-acc"/>
+        <text x="266" y="82" font-size="14" font-weight="700">env-station（計測ループ）</text>
+        <text x="266" y="104" font-size="12" class="muted">60 秒ごとに SCD40 を読む</text>
+        <text x="266" y="122" font-size="12" class="muted">起動時に設置場所を記録</text>
+        <text x="266" y="160" font-size="11" class="mono muted">raspberrypi_env_station/cli.py</text>
+
+        <rect x="510" y="56" width="160" height="120" rx="6" class="box"/>
+        <text x="526" y="82" font-size="13" font-weight="700">SQLite</text>
+        <text x="526" y="104" font-size="11" class="mono muted">readings</text>
+        <text x="526" y="122" font-size="11" class="mono muted">station</text>
+        <text x="526" y="160" font-size="10" class="mono muted">data/readings.sqlite</text>
+
+        <rect x="250" y="276" width="420" height="86" rx="6" class="box"/>
+        <text x="266" y="302" font-size="14" font-weight="700">qzss_dcr</text>
+        <text x="266" y="322" font-size="12" class="muted">災危通報 DC Report / DCX を azarashi でデコード</text>
+        <text x="266" y="344" font-size="11" class="mono muted">外部ツール（MIT）・別に clone して動かす</text>
+
+        <rect x="20" y="382" width="170" height="80" rx="6" class="box"/>
+        <text x="34" y="406" font-size="13" font-weight="700">気象庁 防災情報XML</text>
+        <text x="34" y="426" font-size="12" class="muted">Atom フィード（毎分更新）</text>
+        <text x="34" y="446" font-size="11" class="mono muted">共用 Wi-Fi → インターネット</text>
+
+        <rect x="250" y="382" width="420" height="80" rx="6" class="box-plan"/>
+        <text x="266" y="406" font-size="14" font-weight="700">jma-feed（未実装）</text>
+        <text x="266" y="426" font-size="12" class="muted">警報・注意報・地震情報を 1 分ごとに確認し、</text>
+        <text x="266" y="444" font-size="12" class="muted">設置場所の地域のものだけ SQLite に記録</text>
+
+        <rect x="716" y="80" width="150" height="76" rx="6" class="box-plan"/>
+        <text x="730" y="106" font-size="13" font-weight="700">Web ダッシュボード</text>
+        <text x="730" y="124" font-size="12" class="muted">大型モニターに常時表示</text>
+        <text x="730" y="142" font-size="12" class="muted">（未実装）</text>
+
+        <rect x="716" y="280" width="150" height="76" rx="6" class="box"/>
+        <text x="730" y="306" font-size="13" font-weight="700">通報の表示・記録</text>
+        <text x="730" y="324" font-size="12" class="muted">日本語表示</text>
+        <text x="730" y="340" font-size="12" class="muted">ログ・通知</text>
+
+        <path d="M190 79 H250" class="flow" marker-end="url(#ah)"/>
+        <text x="204" y="72" font-size="11" class="mono muted">I2C</text>
+        <path d="M190 181 H220 V140 H250" class="flow" marker-end="url(#ah)"/>
+        <path d="M490 116 H510" class="flow" marker-end="url(#ah)"/>
+        <path d="M190 319 H250" class="flow-plan" marker-end="url(#ahm)"/>
+        <text x="198" y="312" font-size="11" class="mono muted">UBX</text>
+        <path d="M670 116 H716" class="flow-plan" marker-end="url(#ahm)"/>
+        <path d="M670 319 H716" class="flow" marker-end="url(#ah)"/>
+        <path d="M190 422 H250" class="flow-plan" marker-end="url(#ahm)"/>
+        <text x="198" y="415" font-size="11" class="mono muted">XML</text>
+        <path d="M670 422 H790 V356" class="flow-plan" marker-end="url(#ahm)"/>
+      </svg>
+    </div>
+    <p class="caption">実線は実装済み・入手済み、破線は未実装・未購入。設置場所は動かないので GPS では測らない。</p>
+
+    <div class="callout">
+      <h3>災危通報と気象庁 XML は役割が違う</h3>
+      <p>気象庁 XML はインターネット経由で、警報・注意報や地震情報を詳しく得られる。災危通報は衛星から直接届くので、回線や停電でインターネットが止まっても受けられる。普段は XML、非常時の予備に衛星、という組み合わせになる。</p>
+      <p>高解像度降水ナウキャストの地図タイルは、Pi の画面に映した Chromium が気象庁から直接読む。ただしこのタイルは気象庁サイトの「雨雲の動き」用で、公開 API としての仕様は示されていない。利用規約と出典表示を確かめてから使う。</p>
+      <p>気象庁は「一度取得したファイルを再取得しない」実装を求めている（1 日 10GB を超えると IP 遮断）。取得済みの電文 ID を SQLite に記録して二重取得しない。</p>
+    </div>
+  </section>
+
+  <!-- 3. 配線 -->
+  <section>
+    <div class="sec-head"><h2>配線</h2><span class="tag">GPIO 40 ピンのうち 1〜18 番を使う</span></div>
+    <div class="figure narrow">
+      <svg viewBox="0 0 800 370" role="img" aria-label="Raspberry Pi 4 の GPIO 1・3・5・6 番に SCD40、8・9・10・17 番に MAX-M10S をつなぐ配線">
+        <rect x="20" y="40" width="460" height="300" rx="10" class="pcb"/>
+        <text x="36" y="66" font-size="13" font-weight="700">Raspberry Pi 4</text>
+        <text x="36" y="84" font-size="11" class="muted">GPIO ヘッダー 1〜18 番。左端が 1 番（USB・LAN 端子から遠い側）</text>
+
+        <!-- 上段: 偶数 -->
+        <rect x="50" y="170" width="22" height="22" class="pin"/>
+        <rect x="86" y="170" width="22" height="22" class="pin"/>
+        <rect x="122" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
+        <rect x="158" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-orange)"/>
+        <rect x="194" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-green)"/>
+        <rect x="230" y="170" width="22" height="22" class="pin"/>
+        <rect x="266" y="170" width="22" height="22" class="pin"/>
+        <rect x="302" y="170" width="22" height="22" class="pin"/>
+        <rect x="338" y="170" width="22" height="22" class="pin"/>
+        <!-- 下段: 奇数 -->
+        <rect x="50" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
+        <rect x="86" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-blue)"/>
+        <rect x="122" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-yellow)"/>
+        <rect x="158" y="206" width="22" height="22" class="pin"/>
+        <rect x="194" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
+        <rect x="230" y="206" width="22" height="22" class="pin"/>
+        <rect x="266" y="206" width="22" height="22" class="pin"/>
+        <rect x="302" y="206" width="22" height="22" class="pin"/>
+        <rect x="338" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
+        <g font-size="9" class="mono" text-anchor="middle">
+          <text x="61" y="185">2</text><text x="97" y="185">4</text><text x="133" y="185">6</text><text x="169" y="185">8</text><text x="205" y="185">10</text><text x="241" y="185">12</text><text x="277" y="185">14</text><text x="313" y="185">16</text><text x="349" y="185">18</text>
+          <text x="61" y="221">1</text><text x="97" y="221">3</text><text x="133" y="221">5</text><text x="169" y="221">7</text><text x="205" y="221">9</text><text x="241" y="221">11</text><text x="277" y="221">13</text><text x="313" y="221">15</text><text x="349" y="221">17</text>
+        </g>
+        <text x="380" y="186" font-size="10" class="muted">上段 偶数</text>
+        <text x="380" y="222" font-size="10" class="muted">下段 奇数</text>
+
+        <!-- SCD40 の配線（上へ） -->
+        <path d="M61 217 H79 V104 H520" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
+        <path d="M97 217 H115 V120 H520" stroke="var(--wire-blue)" stroke-width="3" fill="none"/>
+        <path d="M133 170 V136 H520" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
+        <path d="M133 217 H151 V152 H520" stroke="var(--wire-yellow)" stroke-width="3" fill="none"/>
+
+        <!-- MAX-M10S の配線（下へ） -->
+        <path d="M349 228 V250 H520" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
+        <path d="M205 181 H223 V266 H520" stroke="var(--wire-green)" stroke-width="3" fill="none"/>
+        <path d="M205 228 V282 H520" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
+        <path d="M169 181 H187 V298 H520" stroke="var(--wire-orange)" stroke-width="3" fill="none"/>
+
+        <!-- SCD40 -->
+        <text x="520" y="76" font-size="13" font-weight="700">AE-SCD40-BO</text>
+        <rect x="520" y="88" width="260" height="80" rx="6" class="box-acc"/>
+        <g font-size="11" class="mono">
+          <text x="532" y="108">VDD ← 1 番 3.3V</text>
+          <text x="532" y="124">SDA ← 3 番 GPIO2</text>
+          <text x="532" y="140">GND ← 6 番</text>
+          <text x="532" y="156">SCL ← 5 番 GPIO3</text>
+        </g>
+
+        <!-- MAX-M10S -->
+        <rect x="520" y="236" width="260" height="76" rx="6" class="box-plan"/>
+        <text x="520" y="334" font-size="13" font-weight="700">MAX-M10S モジュール</text>
+        <g font-size="11" class="mono">
+          <text x="532" y="254">電源 ← 17 番 3.3V ※</text>
+          <text x="532" y="270">TX → 10 番 RXD</text>
+          <text x="532" y="286">GND ← 9 番</text>
+          <text x="532" y="302">RX ← 8 番 TXD</text>
+        </g>
+      </svg>
+    </div>
+    <p class="caption">TX と RX は交差させる（モジュールの TX → Pi の RXD）。※ スイッチサイエンス製モジュールのピン名と電源電圧は商品ページで確認できていないので、届いたら基板の表示と資料で確かめる。SCD40 の線の色は付属コードからの推定。</p>
+  </section>
+
+  <!-- 4. ソフトウェア -->
+  <section>
+    <div class="sec-head"><h2>ソフトウェア構成</h2><span class="tag">uv · Python 3.15 · Ruff · pytest</span></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>計測（実装済み）</h3>
+        <p class="mono" style="font-size:13px">env-station</p>
+        <p>設定ファイルを読み、決まった間隔で SCD40 を読んで SQLite に書く。<code>--fake</code> で実機なしでも動く。</p>
+      </div>
+      <div class="card">
+        <h3>設置場所（実装済み）</h3>
+        <p class="mono" style="font-size:13px">config.toml [station]</p>
+        <p>緯度経度を設定に書き、起動時に <code>station</code> テーブルへ記録する。地図に載せるときに使う。</p>
+      </div>
+      <div class="card">
+        <h3>災危通報（既存ツール）</h3>
+        <p class="mono" style="font-size:13px">qzss_dcr</p>
+        <p>MAX-M10S に L1S を有効にする設定を送り、受信した通報を日本語で表示・記録する。</p>
+      </div>
+      <div class="card">
+        <h3>気象庁 XML（未実装）</h3>
+        <p class="mono" style="font-size:13px">jma-feed</p>
+        <p><code>extra.xml</code>（警報・注意報）と <code>eqvol.xml</code>（地震・火山）を毎分確かめ、新しい電文だけ取得して設置場所の地域で絞る。</p>
+      </div>
+      <div class="card">
+        <h3>Web ダッシュボード（未実装）</h3>
+        <p class="mono" style="font-size:13px">MapLibre GL JS・TypeScript</p>
+        <p>Pi 上の小さな Web サーバーが <code>127.0.0.1</code> だけで配信し、起動時に Chromium の全画面表示で 60 インチ以上の大型モニターに映す（出力は 1920×1080、3〜5m 離れて読める文字の大きさ）。共用 Wi-Fi の他の入居者からは開けない。地図に設置場所と高解像度降水ナウキャストを重ね、横に CO2・温湿度のグラフと警報・災危通報の一覧を並べる。</p>
+      </div>
+    </div>
+
+    <h3>保存形式</h3>
+    <p>計測値は 1 行 = 1 時刻 × 1 センサー × 1 指標の縦持ち。時刻は UTC。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ts</th><th>sensor</th><th>metric</th><th>value</th></tr></thead>
+        <tbody>
+          <tr><td class="num">2026-11-07T10:00:00+00:00</td><td class="mono">scd4x</td><td class="mono">co2_ppm</td><td class="num">612</td></tr>
+          <tr><td class="num">2026-11-07T10:00:00+00:00</td><td class="mono">scd4x</td><td class="mono">temperature_c</td><td class="num">22.4</td></tr>
+          <tr><td class="num">2026-11-07T10:00:00+00:00</td><td class="mono">scd4x</td><td class="mono">humidity_pct</td><td class="num">41.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">値は例。</p>
+  </section>
+
+  <!-- 5. 部品表 -->
+  <section>
+    <div class="sec-head"><h2>部品表</h2></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>部品</th><th>用途</th><th>状態</th></tr></thead>
+        <tbody>
+          <tr><td>Raspberry Pi 4 Model B 8GB（公式ケース）</td><td>本体</td><td><span class="pill ok">手元にある</span></td></tr>
+          <tr><td>microSD 64GB（KIOXIA EXCERIA）</td><td>OS とデータ</td><td><span class="pill ok">手元にある</span></td></tr>
+          <tr><td>秋月 AE-SCD40-BO</td><td>CO2・温度・湿度</td><td><span class="pill ok">購入済み</span></td></tr>
+          <tr><td>スイッチサイエンス MAX-M10S搭載 GNSSレシーバーモジュール（SMA）</td><td>災危通報の受信</td><td><span class="pill warn">要購入</span></td></tr>
+          <tr><td>SMA コネクタのアクティブアンテナ</td><td>窓際で衛星の電波を拾う</td><td><span class="pill warn">要購入</span></td></tr>
+          <tr><td>メス-メス ジャンパーワイヤー</td><td>MAX-M10S 用 4 本。SCD40 用は付属コード次第</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>USB-C 電源 5V 3A</td><td>Pi 4 の電源</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>micro-HDMI to HDMI ケーブル</td><td>大型モニターへの映像出力（5m 超ならアクティブケーブル）</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>USB キーボード・マウス</td><td>現地での設定と保守（SSH は使わない）</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>YIC GU-502MGG-USB</td><td>L1S 非対応の見込み。固定設置なので位置記録にも使わない</td><td><span class="pill todo">使わない</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. 進め方 -->
+  <section>
+    <div class="sec-head"><h2>進め方</h2><span class="tag">上から順に</span></div>
+    <ol class="steps">
+      <li>コワーキングの運営者に、共用 Wi-Fi につなぐ条件（端末の登録、認証方式、ブラウザでのログイン画面の有無、常時接続機器を置いてよいか）を確認する。</li>
+      <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する（SSH は無効のまま）。</li>
+      <li>SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめる。</li>
+      <li><code>config.toml</code> の <code>[station]</code> に設置場所の緯度経度を書き、<code>env-station</code> で計測を始める。</li>
+      <li>MAX-M10S モジュールとアンテナを買い、UART で配線して qzss_dcr で受信を確かめる。</li>
+      <li>Pi 上で Web ダッシュボード（地図にナウキャストと設置場所、CO2・温湿度のグラフ）を作り、起動時に大型モニターへ全画面で映るようにする。</li>
+      <li>気象庁 XML の取得（jma-feed）を作り、設置場所の地域コードで警報・注意報を絞る。</li>
+      <li>env-station・jma-feed・qzss_dcr を systemd で起動時に自動で動くようにする。</li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>

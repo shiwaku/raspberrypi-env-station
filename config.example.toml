@@ -1,0 +1,16 @@
+# cp config.example.toml config.toml して編集する
+
+database = "data/readings.sqlite"
+interval_s = 60  # 計測間隔（秒）。SCD40 は 5 秒ごとに値が更新される
+
+# 設置場所（固定）。地理院地図などで調べた緯度経度を WGS84 の十進で書く
+[station]
+name = "オフィス"
+latitude = 43.0618
+longitude = 141.3545
+
+# 秋月 AE-SCD40-BO（CO2・温度・湿度）
+[[sensors]]
+type = "scd4x"
+bus = 1
+address = 0x62

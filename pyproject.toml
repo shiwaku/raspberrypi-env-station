@@ -1,0 +1,39 @@
+[project]
+name = "raspberrypi-env-station"
+version = "0.1.0"
+description = "Raspberry Pi で CO2・温度・湿度を定期計測して SQLite に記録し、みちびきの災危通報を受信する"
+readme = "README.md"
+requires-python = ">=3.15"
+dependencies = []
+
+[project.optional-dependencies]
+# Raspberry Pi 上で実機センサーを読むときだけ必要
+pi = [
+    "smbus2>=0.5",
+]
+
+[project.scripts]
+env-station = "raspberrypi_env_station.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "ruff>=0.14",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv]
+required-version = ">=0.13.5"
+exclude-newer = "7 days"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
