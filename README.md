@@ -143,3 +143,7 @@ uv run pytest
 uv run ruff check
 uv run ruff format
 ```
+
+## ライセンス
+
+MIT License（[LICENSE](LICENSE)）。災危通報のデコードに使う qzss_dcr は別リポジトリで、それぞれのライセンスに従う。
