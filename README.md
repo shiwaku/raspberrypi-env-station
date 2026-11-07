@@ -4,6 +4,8 @@
 同じ Pi で、気象庁の防災情報 XML と、みちびき（QZSS）の L1S 信号で配信される災危通報を受け取る。
 結果は室内の大型モニターに、高解像度降水ナウキャストを重ねた地図とグラフとして常時表示する（ダッシュボードと XML 取得は未実装）。
 
+**設計図**: https://shiwaku.github.io/raspberrypi-env-station/design.html （元ファイルは [docs/design.html](docs/design.html)。`main` にマージすると GitHub Pages に反映される）
+
 | 役割 | 機材 | 接続 | 状態 |
 |---|---|---|---|
 | CO2・温度・湿度 | 秋月 AE-SCD40-BO（Sensirion SCD40） | I2C 0x62 | 購入済み |
