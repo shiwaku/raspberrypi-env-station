@@ -351,74 +351,78 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
 
   <!-- 4. 配線 -->
   <section>
-    <div class="sec-head"><h2>配線</h2><span class="tag">GPIO 40 ピンのうち 1〜18 番を使う</span></div>
+    <div class="sec-head"><h2>配線</h2><span class="tag">GPIO 40 ピンのうち 1〜18 番を使う · 図は基板を上から見た向き</span></div>
     <div class="figure narrow">
-      <svg viewBox="0 0 800 370" role="img" aria-label="Raspberry Pi 4 の GPIO 1・3・5・6 番に SCD40、8・9・10・17 番に MAX-M10S をつなぐ配線">
-        <rect x="20" y="40" width="460" height="300" rx="10" class="pcb"/>
-        <text x="36" y="66" font-size="13" font-weight="700">Raspberry Pi 4</text>
-        <text x="36" y="84" font-size="11" class="muted">GPIO ヘッダー 1〜18 番。左端が 1 番（USB・LAN 端子から遠い側）</text>
-
-        <!-- 上段: 偶数 -->
-        <rect x="50" y="170" width="22" height="22" class="pin"/>
-        <rect x="86" y="170" width="22" height="22" class="pin"/>
-        <rect x="122" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
-        <rect x="158" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-orange)"/>
-        <rect x="194" y="170" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-green)"/>
-        <rect x="230" y="170" width="22" height="22" class="pin"/>
-        <rect x="266" y="170" width="22" height="22" class="pin"/>
-        <rect x="302" y="170" width="22" height="22" class="pin"/>
-        <rect x="338" y="170" width="22" height="22" class="pin"/>
-        <!-- 下段: 奇数 -->
-        <rect x="50" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
-        <rect x="86" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-blue)"/>
-        <rect x="122" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-yellow)"/>
-        <rect x="158" y="206" width="22" height="22" class="pin"/>
-        <rect x="194" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
-        <rect x="230" y="206" width="22" height="22" class="pin"/>
-        <rect x="266" y="206" width="22" height="22" class="pin"/>
-        <rect x="302" y="206" width="22" height="22" class="pin"/>
-        <rect x="338" y="206" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
+      <svg viewBox="0 0 800 480" role="img" aria-label="Raspberry Pi 4 を上から見た図。基板の右端に縦に並ぶ GPIO ヘッダーの 1・3・5・6 番に AE-SCD40-BO、8・9・10・17 番に MAX-M10S をつなぐ。1 番は USB・LAN 端子から遠い上端の内側の列">
+        <!-- 基板（写真と同じ向き: GPIO は右端、USB・LAN は下） -->
+        <rect x="20" y="20" width="380" height="420" rx="12" class="pcb"/>
+        <text x="36" y="46" font-size="13" font-weight="700">Raspberry Pi 4（上から見た向き）</text>
+        <text x="36" y="64" font-size="11" class="muted">GPIO は基板の右端に縦に 40 本</text>
+        <!-- 左端の端子 -->
+        <rect x="10" y="90" width="30" height="24" rx="3" class="box"/><text x="48" y="106" font-size="10" class="muted">USB-C 電源</text>
+        <rect x="10" y="150" width="30" height="24" rx="3" class="box"/><text x="48" y="166" font-size="10" class="muted">micro-HDMI 0</text>
+        <rect x="10" y="190" width="30" height="24" rx="3" class="box"/><text x="48" y="206" font-size="10" class="muted">micro-HDMI 1</text>
+        <!-- 下端の端子 -->
+        <rect x="40" y="404" width="70" height="56" rx="3" class="box"/><text x="75" y="436" font-size="10" text-anchor="middle" class="muted">USB 2.0</text>
+        <rect x="140" y="404" width="70" height="56" rx="3" class="box"/><text x="175" y="436" font-size="10" text-anchor="middle" class="muted">USB 3.0</text>
+        <rect x="250" y="404" width="90" height="56" rx="3" class="box"/><text x="295" y="436" font-size="10" text-anchor="middle" class="muted">LAN</text>
+        <!-- GPIO ヘッダー 1〜18 番（内側の列＝奇数、端の列＝偶数） -->
+        <rect x="300" y="90" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
+        <rect x="340" y="90" width="22" height="22" class="pin" style="fill:var(--warn-soft);stroke:var(--warn)"/>
+        <rect x="300" y="124" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-blue)"/>
+        <rect x="340" y="124" width="22" height="22" class="pin" style="fill:var(--warn-soft);stroke:var(--warn)"/>
+        <rect x="300" y="158" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-yellow)"/>
+        <rect x="340" y="158" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
+        <rect x="300" y="192" width="22" height="22" class="pin"/>
+        <rect x="340" y="192" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-orange)"/>
+        <rect x="300" y="226" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-black)"/>
+        <rect x="340" y="226" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-green)"/>
+        <rect x="300" y="260" width="22" height="22" class="pin"/>
+        <rect x="340" y="260" width="22" height="22" class="pin"/>
+        <rect x="300" y="294" width="22" height="22" class="pin"/>
+        <rect x="340" y="294" width="22" height="22" class="pin"/>
+        <rect x="300" y="328" width="22" height="22" class="pin"/>
+        <rect x="340" y="328" width="22" height="22" class="pin"/>
+        <rect x="300" y="362" width="22" height="22" class="pin pin-used" style="stroke:var(--wire-red)"/>
+        <rect x="340" y="362" width="22" height="22" class="pin"/>
         <g font-size="9" class="mono" text-anchor="middle">
-          <text x="61" y="185">2</text><text x="97" y="185">4</text><text x="133" y="185">6</text><text x="169" y="185">8</text><text x="205" y="185">10</text><text x="241" y="185">12</text><text x="277" y="185">14</text><text x="313" y="185">16</text><text x="349" y="185">18</text>
-          <text x="61" y="221">1</text><text x="97" y="221">3</text><text x="133" y="221">5</text><text x="169" y="221">7</text><text x="205" y="221">9</text><text x="241" y="221">11</text><text x="277" y="221">13</text><text x="313" y="221">15</text><text x="349" y="221">17</text>
+          <text x="311" y="104">1</text><text x="351" y="104">2</text><text x="311" y="138">3</text><text x="351" y="138">4</text><text x="311" y="172">5</text><text x="351" y="172">6</text><text x="311" y="206">7</text><text x="351" y="206">8</text><text x="311" y="240">9</text><text x="351" y="240">10</text><text x="311" y="274">11</text><text x="351" y="274">12</text><text x="311" y="308">13</text><text x="351" y="308">14</text><text x="311" y="342">15</text><text x="351" y="342">16</text><text x="311" y="376">17</text><text x="351" y="376">18</text>
         </g>
-        <text x="380" y="186" font-size="10" class="muted">上段 偶数</text>
-        <text x="380" y="222" font-size="10" class="muted">下段 奇数</text>
-
-        <!-- SCD40 の配線（上へ） -->
-        <path d="M61 217 H79 V104 H520" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
-        <path d="M97 217 H115 V120 H520" stroke="var(--wire-blue)" stroke-width="3" fill="none"/>
-        <path d="M133 170 V136 H520" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
-        <path d="M133 217 H151 V152 H520" stroke="var(--wire-yellow)" stroke-width="3" fill="none"/>
-
-        <!-- MAX-M10S の配線（下へ） -->
-        <path d="M349 228 V250 H520" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
-        <path d="M205 181 H223 V266 H520" stroke="var(--wire-green)" stroke-width="3" fill="none"/>
-        <path d="M205 228 V282 H520" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
-        <path d="M169 181 H187 V298 H520" stroke="var(--wire-orange)" stroke-width="3" fill="none"/>
-
-        <!-- SCD40 -->
-        <text x="520" y="76" font-size="13" font-weight="700">AE-SCD40-BO</text>
-        <rect x="520" y="88" width="260" height="80" rx="6" class="box-acc"/>
+        <text x="292" y="377" font-size="10" text-anchor="end" class="muted">この下に 40 番まで続く ↓</text>
+        <text x="292" y="105" font-size="11" font-weight="700" text-anchor="end" style="fill:var(--wire-red)">1 番 →</text>
+        <text x="311" y="78" font-size="10" text-anchor="middle" class="muted">奇数</text>
+        <text x="351" y="78" font-size="10" text-anchor="middle" class="muted">偶数</text>
+        <text x="292" y="139" font-size="10" text-anchor="end" style="fill:var(--warn)">右の 2・4 番は 5V（つながない）</text>
+        <!-- AE-SCD40-BO の配線 -->
+        <path d="M311 101 V84 H500" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
+        <path d="M311 135 V118 H500" stroke="var(--wire-blue)" stroke-width="3" fill="none"/>
+        <path d="M311 169 V152 H500" stroke="var(--wire-yellow)" stroke-width="3" fill="none"/>
+        <path d="M351 169 H500" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
+        <text x="500" y="56" font-size="13" font-weight="700">AE-SCD40-BO</text>
+        <rect x="500" y="66" width="280" height="117" rx="6" class="box-acc"/>
         <g font-size="11" class="mono">
-          <text x="532" y="108">VDD ← 1 番 3.3V</text>
-          <text x="532" y="124">SDA ← 3 番 GPIO2</text>
-          <text x="532" y="140">GND ← 6 番</text>
-          <text x="532" y="156">SCL ← 5 番 GPIO3</text>
+          <text x="512" y="88">赤 VIN(+) ← 1 番 3.3V</text>
+          <text x="512" y="122">青 SDA(D) ← 3 番 GPIO2</text>
+          <text x="512" y="156">黄 SCL(C) ← 5 番 GPIO3</text>
+          <text x="512" y="173">黒 GND(G) ← 6 番</text>
         </g>
-
-        <!-- MAX-M10S -->
-        <rect x="520" y="236" width="260" height="76" rx="6" class="box-plan"/>
-        <text x="520" y="334" font-size="13" font-weight="700">MAX-M10S モジュール</text>
+        <text x="500" y="199" font-size="10" class="muted">付属ケーブルは基板の CN1 に差す（1 GND・2 VIN・3 SDA・4 SCL）</text>
+        <!-- MAX-M10S の配線 -->
+        <path d="M351 203 H470 V249 H500" stroke="var(--wire-orange)" stroke-width="3" fill="none"/>
+        <path d="M311 237 V220 H460 V266 H500" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
+        <path d="M351 237 H450 V283 H500" stroke="var(--wire-green)" stroke-width="3" fill="none"/>
+        <path d="M311 373 V390 H440 V300 H500" stroke="var(--wire-red)" stroke-width="3" fill="none"/>
+        <rect x="500" y="235" width="280" height="79" rx="6" class="box-plan"/>
+        <text x="500" y="334" font-size="13" font-weight="700">MAX-M10S モジュール</text>
         <g font-size="11" class="mono">
-          <text x="532" y="254">電源 ← 17 番 3.3V ※</text>
-          <text x="532" y="270">TX → 10 番 RXD</text>
-          <text x="532" y="286">GND ← 9 番</text>
-          <text x="532" y="302">RX ← 8 番 TXD</text>
+          <text x="512" y="253">RX ← 8 番 TXD</text>
+          <text x="512" y="270">GND ← 9 番</text>
+          <text x="512" y="287">TX → 10 番 RXD</text>
+          <text x="512" y="304">電源 ← 17 番 3.3V ※</text>
         </g>
       </svg>
     </div>
-    <p class="caption">TX と RX は交差させる（モジュールの TX → Pi の RXD）。※ スイッチサイエンス製モジュールのピン名と電源電圧は商品ページで確認できていないので、届いたら基板の表示と資料で確かめる。SCD40 の線の色は付属コードからの推定。</p>
+    <p class="caption">TX と RX は交差させる（モジュールの TX → Pi の RXD）。※ スイッチサイエンス製モジュールのピン名と電源電圧は商品ページで確認できていないので、届いたら基板の表示と資料で確かめる。AE-SCD40-BO の端子名と CN1 の並びは秋月のマニュアルによる。線の色は Qwiic の標準（黒 GND・赤 VIN・青 SDA・黄 SCL）なので、基板の G・+・D・C の印字と見比べて確かめる。付属ケーブルの Pi 側はメスのソケットなので、そのまま GPIO ピンに差せる。</p>
   </section>
 
   <!-- 5. ソフトウェア -->
@@ -484,7 +488,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
           <tr><td>秋月 AE-SCD40-BO</td><td>CO2・温度・湿度</td><td><span class="pill ok">購入済み</span></td></tr>
           <tr><td>スイッチサイエンス MAX-M10S搭載 GNSSレシーバーモジュール（SMA）</td><td>災危通報の受信</td><td><span class="pill warn">要購入</span></td></tr>
           <tr><td>SMA コネクタのアクティブアンテナ</td><td>窓際で衛星の電波を拾う</td><td><span class="pill warn">要購入</span></td></tr>
-          <tr><td>メス-メス ジャンパーワイヤー</td><td>MAX-M10S 用 4 本。SCD40 用は付属コード次第</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>メス-メス ジャンパーワイヤー</td><td>MAX-M10S 用 4 本。SCD40 は付属ケーブル（Pi 側がメスのソケット）で足りる</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>USB-C 電源 5V 3A</td><td>Pi 4 の電源</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>micro-HDMI to HDMI ケーブル</td><td>大型モニターへの映像出力（5m 超ならアクティブケーブル）</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>USB キーボード・マウス</td><td>現地での設定と保守（SSH は使わない）</td><td><span class="pill todo">要確認</span></td></tr>
