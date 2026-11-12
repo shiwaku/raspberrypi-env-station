@@ -23,16 +23,21 @@
 
 | 機材のピン | Raspberry Pi（物理ピン） |
 |---|---|
-| SCD40 VDD | 3.3V（1 番） |
-| SCD40 GND | GND（6 番） |
-| SCD40 SDA | GPIO2 / SDA（3 番） |
-| SCD40 SCL | GPIO3 / SCL（5 番） |
+| SCD40 VIN(+)（赤） | 3.3V（1 番） |
+| SCD40 GND(G)（黒） | GND（6 番） |
+| SCD40 SDA(D)（青） | GPIO2 / SDA（3 番） |
+| SCD40 SCL(C)（黄） | GPIO3 / SCL（5 番） |
 | MAX-M10S 電源 | 3.3V（17 番）※ 電源電圧はボードの仕様で要確認 |
 | MAX-M10S GND | GND（9 番） |
 | MAX-M10S TX | GPIO15 / RXD（10 番） |
 | MAX-M10S RX | GPIO14 / TXD（8 番） |
 
 TX と RX は交差させる（受信機の TX → Pi の RXD）。
+
+- GPIO の 40 本のピンは、基板の長い辺の端に 2 列で並ぶ。1 番は USB・LAN 端子から遠い端で、基板の内側の列にある（裏から見るとハンダが四角）。内側の列が奇数、端の列が偶数
+- 端の列の 1 番側の 2 本（2 番・4 番）は 5V。センサーの電源をここに差すと壊れる
+- AE-SCD40-BO は付属ケーブルを基板の CN1 に差し、反対側のメスのソケットを Pi のピンに差す。色は黒 GND・赤 VIN・青 SDA・黄 SCL（基板の G・+・D・C の印字と見比べて確かめる）
+- 向きのわかる図は[設計図の配線](https://shiwaku.github.io/raspberrypi-env-station/design.html)にある
 
 ## Raspberry Pi の準備
 
