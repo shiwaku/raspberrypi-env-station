@@ -491,7 +491,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
           <tr><td>メス-メス ジャンパーワイヤー</td><td>MAX-M10S 用 4 本。SCD40 は付属ケーブル（Pi 側がメスのソケット）で足りる</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>USB-C 電源 5V 3A</td><td>Pi 4 の電源</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>micro-HDMI to HDMI ケーブル</td><td>大型モニターへの映像出力（5m 超ならアクティブケーブル）</td><td><span class="pill todo">要確認</span></td></tr>
-          <tr><td>USB キーボード・マウス</td><td>現地での設定と保守（SSH は使わない）</td><td><span class="pill todo">要確認</span></td></tr>
+          <tr><td>USB キーボード・マウス</td><td>最初の起動と、IP アドレスの確認（以降の保守は PC の Tera Term から SSH）</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>YIC GU-502MGG-USB</td><td>L1S 非対応の見込み。固定設置なので位置記録にも使わない</td><td><span class="pill todo">使わない</span></td></tr>
         </tbody>
       </table>
@@ -503,7 +503,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <div class="sec-head"><h2>進め方</h2><span class="tag">上から順に</span></div>
     <ol class="steps">
       <li>コワーキングの運営者に、共用 Wi-Fi につなぐ条件（端末の登録、認証方式、ブラウザでのログイン画面の有無、常時接続機器を置いてよいか）を確認する（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/2">#2</a>）。電源・ケーブル・キーボードなど周辺機材の有無も確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/3">#3</a>）。</li>
-      <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する（SSH は無効のまま）。SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめ、<code>env-station</code> で計測を始める（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/4">#4</a>）。</li>
+      <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する。SSH は鍵の認証だけを許し、以降は PC の Tera Term から作業する。SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめ、<code>env-station</code> で計測を始める（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/4">#4</a>）。</li>
       <li>MAX-M10S モジュールとアンテナを買い（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/5">#5</a>）、UART で配線して qzss_dcr で受信を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/6">#6</a>）。</li>
       <li>ナウキャストの地図タイルの利用条件を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/7">#7</a>）。気象庁 XML の取得（jma-feed）を作り、設置場所の地域コードで警報・注意報を絞る（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/8">#8</a>）。</li>
       <li>鉄道（帰宅に使う在来線、出張で使う新幹線）と飛行機（よく使う行き先の出発便）のデータの入手先を調べる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</li>
