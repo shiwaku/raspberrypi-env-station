@@ -9,7 +9,7 @@
 | 役割 | 機材 | 接続 | 状態 |
 |---|---|---|---|
 | CO2・温度・湿度 | 秋月 AE-SCD40-BO（Sensirion SCD40） | I2C 0x62 | 購入済み |
-| 災危通報の受信 | u-blox MAX-M10S 搭載ボード + SMA アクティブアンテナ | UART | 未購入 |
+| 災危通報の受信 | SparkFun Qwiic MAX-M10S（18037）+ Quectel YG0035AA アンテナ | I2C 0x42（Qwiic） | 注文済み |
 | 気象情報（警報・注意報・地震） | 気象庁 防災情報XML の Atom フィード | 共用 Wi-Fi → インターネット | 未実装 |
 | 鉄道の運行状況（帰宅に使う在来線、出張で使う新幹線） | ODPT など（入手先を調査中、#12） | 共用 Wi-Fi → インターネット | 未実装 |
 | 飛行機の遅延・欠航（よく使う行き先の出発便） | ODPT など（入手先を調査中、#13） | 共用 Wi-Fi → インターネット | 未実装 |
@@ -19,24 +19,24 @@
 
 ## 配線
 
-基板のシルク表示でピン名を確認し、電源を切ってから配線する。
+はんだ付けはしない。Pi の GPIO には SCD40 の付属ケーブル（Pi 側がメスのソケット）を 1 本だけ差し、その先に Qwiic で機材を数珠つなぎにする。電源を切ってから配線する。
 
-| 機材のピン | Raspberry Pi（物理ピン） |
+```
+Pi GPIO 1・3・5・6 番 ─(SCD40 付属ケーブル)─ MAX-M10S ─(Qwiic ケーブル 100mm)─ SCD40（CN1）
+```
+
+| ケーブルの線 | Raspberry Pi（物理ピン） |
 |---|---|
-| SCD40 VIN(+)（赤） | 3.3V（1 番） |
-| SCD40 GND(G)（黒） | GND（6 番） |
-| SCD40 SDA(D)（青） | GPIO2 / SDA（3 番） |
-| SCD40 SCL(C)（黄） | GPIO3 / SCL（5 番） |
-| MAX-M10S 電源 | 3.3V（17 番）※ 電源電圧はボードの仕様で要確認 |
-| MAX-M10S GND | GND（9 番） |
-| MAX-M10S TX | GPIO15 / RXD（10 番） |
-| MAX-M10S RX | GPIO14 / TXD（8 番） |
+| 赤 3.3V | 3.3V（1 番） |
+| 青 SDA | GPIO2 / SDA（3 番） |
+| 黄 SCL | GPIO3 / SCL（5 番） |
+| 黒 GND | GND（6 番） |
 
-TX と RX は交差させる（受信機の TX → Pi の RXD）。
+MAX-M10S（I2C 0x42）と SCD40（0x62）は同じ I2C の線を共有する。アドレスが違うので混ざらない。アンテナは MAX-M10S の SMA 端子に差し、窓際に置く。
 
 - GPIO の 40 本のピンは、基板の長い辺の端に 2 列で並ぶ。1 番は USB・LAN 端子から遠い端で、基板の内側の列にある（裏から見るとハンダが四角）。内側の列が奇数、端の列が偶数
 - 端の列の 1 番側の 2 本（2 番・4 番）は 5V。センサーの電源をここに差すと壊れる
-- AE-SCD40-BO は付属ケーブルを基板の CN1 に差し、反対側のメスのソケットを Pi のピンに差す。色は黒 GND・赤 VIN・青 SDA・黄 SCL（基板の G・+・D・C の印字と見比べて確かめる）
+- 線の色は Qwiic の標準（黒 GND・赤 3.3V・青 SDA・黄 SCL）。SCD40 の基板の G・+・D・C の印字と見比べて確かめる
 - 向きのわかる図は[設計図の配線](https://shiwaku.github.io/raspberrypi-env-station/design.html)にある
 
 ## Raspberry Pi の準備
@@ -112,20 +112,14 @@ Pi 4 の映像出力は micro-HDMI。**micro-HDMI to HDMI ケーブル**でモ�
 - ダッシュボードは 3〜5m 離れて読める文字の大きさで作る（CO2 の現在値は大きく、細かい表は載せない）
 - ダッシュボードは起動時に Chromium の全画面表示（キオスク表示）で開くよう設定する（ダッシュボード実装時に手順を追加）
 
-### I2C と UART を有効にする（Pi で作業）
+### I2C を有効にする（Pi で作業）
 
 ```sh
-# Interface Options で次を設定する
-#   I2C → Yes
-#   Serial Port → ログインシェル: No / シリアルポート: Yes
+# Interface Options → I2C → Yes
 sudo raspi-config
-
-# Pi 4 の GPIO14/15 を安定した UART（PL011）にするため Bluetooth を止める（Wi-Fi は影響を受けない）
-echo "dtoverlay=disable-bt" | sudo tee -a /boot/firmware/config.txt
-sudo usermod -aG dialout $USER   # シリアルを sudo なしで読む
 sudo reboot
 
-# SCD40 が見えるか確認（62 が表示されれば OK）
+# SCD40 が見えるか確認（62 が表示されれば OK。MAX-M10S をつないだ後は 42 も出る）
 sudo apt install -y i2c-tools
 i2cdetect -y 1
 
@@ -149,10 +143,13 @@ uv run env-station                   # interval_s ごとに計測し続ける（
 
 デコードと表示は [qzss_dcr](https://github.com/fractional-n/qzss_dcr)（MIT）に任せる。このリポジトリには含めず、別に clone して動かす。
 
+MAX-M10S は I2C でつなぐので、I2C（0x42）から読んだデータを `localhost:2101` の TCP に流す中継プログラムを Pi で動かし、qzss_dcr は TCP 入力で受け取る。qzss_dcr が送る L1S の設定も、同じ中継を通って MAX-M10S に書き込まれる。中継プログラムは未実装。
+
 ```sh
 git clone https://github.com/fractional-n/qzss_dcr.git
 cd qzss_dcr
-python3 qzss_dcr.py /dev/serial0 -b 38400 --configure-m10   # 初回は L1S を有効にする設定を送る
+# 中継プログラムを動かした状態で（初回は L1S を有効にする設定を送る）
+python3 qzss_dcr.py --tcp localhost:2101 --configure-m10 --ubx-port I2C
 ```
 
 アンテナは窓際など空の見える場所に置く。みちびきが見えていれば、L1S のメッセージは 4 秒ごとに届く。
