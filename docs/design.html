@@ -217,7 +217,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <!-- 地図 -->
         <rect x="16" y="16" width="470" height="300" rx="6" class="sky"/>
         <text x="32" y="42" font-size="14" font-weight="700">地図</text>
-        <text x="32" y="62" font-size="12" class="muted">地理院タイル（淡色地図）に雨雲と設置場所</text>
+        <text x="32" y="62" font-size="12" class="muted">地理院タイル（淡色・標準・空中写真）に雨雲と設置場所</text>
         <circle cx="250" cy="170" r="7" class="acc"/>
         <ellipse cx="320" cy="140" rx="70" ry="38" fill="var(--wire-blue)" fill-opacity=".25"/>
         <ellipse cx="350" cy="150" rx="34" ry="18" fill="var(--wire-blue)" fill-opacity=".35"/>
@@ -353,7 +353,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <div class="callout">
       <h3>災危通報と気象庁 XML は役割が違う</h3>
       <p>気象庁 XML はインターネット経由で、警報・注意報や地震情報を詳しく得られる。災危通報は衛星から直接届くので、回線や停電でインターネットが止まっても受けられる。普段は XML、非常時の予備に衛星、という組み合わせになる。</p>
-      <p>背景地図は国土地理院の地理院タイル（淡色地図、<code>https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png</code>）を使う。API キーは要らず、画像タイルなので Pi 4 でも描画が軽い。色が薄いので雨雲を重ねても見やすい。地図の隅に「地理院タイル」の出典を表示する。Pi には地図データを置かず、Chromium が Wi-Fi 経由で国土地理院のサーバーから直接読む。</p>
+      <p>背景地図は国土地理院の地理院タイルを使い、淡色地図（<code>pale</code>）・標準地図（<code>std</code>）・シームレス空中写真（<code>seamlessphoto</code>）の 3 種類を切り替えられるようにする（URL は <code>https://cyberjapandata.gsi.go.jp/xyz/{種類}/{z}/{x}/{y}.png</code>、空中写真だけ <code>.jpg</code>）。API キーは要らず、画像タイルなので Pi 4 でも描画が軽い。既定は淡色地図にする。色が薄いので雨雲を重ねても見やすい。空中写真では雨雲が見えにくくなるので、雨雲の色や濃さを変えて重ねる。画面はマウスで操作しない前提なので、切り替えは設定ファイルで選ぶか、時間ごとに自動で替える。地図の隅に「地理院タイル」の出典を表示する。Pi には地図データを置かず、Chromium が Wi-Fi 経由で国土地理院のサーバーから直接読む。</p>
       <p>高解像度降水ナウキャストの地図タイルも、Pi の画面に映した Chromium が気象庁から直接読む。ただしこのタイルは気象庁サイトの「雨雲の動き」用で、公開 API としての仕様は示されていない。利用規約と出典表示を確かめてから使う。</p>
       <p>気象庁は「一度取得したファイルを再取得しない」実装を求めている（1 日 10GB を超えると IP 遮断）。取得済みの電文 ID を SQLite に記録して二重取得しない。</p>
     </div>
@@ -482,7 +482,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
       <div class="card">
         <h3>Web ダッシュボード（未実装）</h3>
         <p class="mono" style="font-size:13px">MapLibre GL JS・TypeScript</p>
-        <p>Pi 上の小さな Web サーバーが <code>127.0.0.1</code> だけで配信し、起動時に Chromium の全画面表示で 60 インチ以上の大型モニターに映す（出力は 1920×1080、3〜5m 離れて読める文字の大きさ）。共用 Wi-Fi の他の入居者からは開けない。背景地図の地理院タイル（淡色地図）に設置場所と高解像度降水ナウキャストを重ね、横に CO2・温湿度のグラフと警報・災危通報の一覧を並べる。</p>
+        <p>Pi 上の小さな Web サーバーが <code>127.0.0.1</code> だけで配信し、起動時に Chromium の全画面表示で 60 インチ以上の大型モニターに映す（出力は 1920×1080、3〜5m 離れて読める文字の大きさ）。共用 Wi-Fi の他の入居者からは開けない。背景地図の地理院タイル（淡色地図・標準地図・シームレス空中写真を切り替え）に設置場所と高解像度降水ナウキャストを重ね、横に CO2・温湿度のグラフと警報・災危通報の一覧を並べる。</p>
       </div>
     </div>
 
