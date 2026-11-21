@@ -12,3 +12,10 @@ export const CO2_MESSAGE: Record<Co2Level, string> = {
 	warn: '換気してください',
 	bad: 'すぐに換気してください'
 };
+
+// DADS の意味を持つ色（白い背景で文字のコントラストが足りる濃いほう）
+export const CO2_TEXT_CLASS: Record<Co2Level, string> = {
+	good: 'text-success-2',
+	warn: 'text-warning-orange-2',
+	bad: 'text-error-2'
+};

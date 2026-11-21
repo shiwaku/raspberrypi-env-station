@@ -1,15 +1,20 @@
 @import 'tailwindcss';
+/* デジタル庁デザインシステム（DADS）のデザイントークン */
+@import '@digital-go-jp/tailwind-theme-plugin/v4';
 
 @theme {
-	--font-sans: 'Noto Sans CJK JP', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+	/* DADS の指定は Noto Sans JP。Raspberry Pi OS の fonts-noto-cjk は同じ字形を
+	   「Noto Sans CJK JP」の名前で入れるので、後ろに足しておく */
+	--font-sans: 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif;
 }
 
 html,
 body {
 	height: 100%;
 	margin: 0;
-	background: var(--color-slate-950);
-	color: var(--color-slate-100);
+	font-family: var(--font-sans);
+	background: var(--color-solid-gray-50);
+	color: var(--color-solid-gray-800);
 	overflow: hidden; /* 大型モニターに出しっぱなしにするのでスクロールさせない */
 	cursor: none;
 }
