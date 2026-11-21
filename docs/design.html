@@ -127,12 +127,12 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <p class="lead">室内に置いた Raspberry Pi 4 で CO2・温度・湿度を記録し、気象庁の防災情報 XML とみちびきの災危通報を受け取る。結果は、帰宅に使う在来線と出張で使う新幹線の運行状況、よく使う便の遅延・欠航とあわせて、室内の大型モニターに地図とグラフで常時表示する。</p>
   </header>
 
-  <!-- 1. 受信のしくみ -->
+  <!-- 1. 機材の全体図 -->
   <section>
-    <div class="sec-head"><h2>災危通報を受信するしくみ</h2><span class="tag">衛星 → アンテナ → 受信モジュール → Pi</span></div>
-    <p>MAX-M10S モジュールは、衛星の電波を数字のデータに変える部品。電波を拾うのは別売りのアンテナで、モジュールが解読した結果を Qwiic ケーブル（I2C）で Pi に送る。はんだ付けはしない。Pi では小さな中継プログラムが I2C（アドレス 0x42）から読んだデータを <code>localhost:2101</code> の TCP に流し、qzss_dcr はそれを TCP 入力として受け取る。</p>
+    <div class="sec-head"><h2>機材の全体図</h2><span class="tag">衛星 → アンテナ → 受信モジュール → Pi ← CO2 センサー</span></div>
+    <p>MAX-M10S モジュールは、衛星の電波を数字のデータに変える部品。電波を拾うのは別売りのアンテナで、モジュールが解読した結果を Qwiic ケーブル（I2C）で Pi に送る。はんだ付けはしない。Pi では小さな中継プログラムが I2C（アドレス 0x42）から読んだデータを <code>localhost:2101</code> の TCP に流し、qzss_dcr はそれを TCP 入力として受け取る。CO2 センサー（AE-SCD40-BO）は MAX-M10S の先に Qwiic でつなぎ、同じ I2C の線を通して env-station が直接読む。</p>
     <div class="figure">
-      <svg viewBox="0 0 900 340" role="img" aria-label="みちびき衛星の L1S 信号をアンテナが受け、ケーブルで MAX-M10S モジュールへ、Qwiic ケーブル（I2C）で Raspberry Pi 4 へ送り、中継プログラムが TCP に流して qzss_dcr が日本語の災危通報にする流れ">
+      <svg viewBox="0 0 900 340" role="img" aria-label="みちびき衛星の L1S 信号をアンテナが受け、ケーブルで MAX-M10S モジュールへ、Qwiic ケーブル（I2C）で Raspberry Pi 4 へ送り、中継プログラムが TCP に流して qzss_dcr が日本語の災危通報にする流れ。CO2 センサー AE-SCD40-BO は MAX-M10S の先に Qwiic ケーブル 100mm でつながり、同じ I2C の線（アドレス 0x62）で env-station が読む">
         <defs>
           <marker id="ah0" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrow"/></marker>
         </defs>
@@ -189,14 +189,23 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <text x="670" y="184" font-size="11" class="muted">UBX から通報を取り出し</text>
         <text x="670" y="200" font-size="11" class="muted">日本語に変換</text>
 
+        <text x="656" y="124" font-size="11" class="mono muted">SCD40 0x62 → env-station</text>
+
+        <!-- CO2 センサー（MAX-M10S の先に Qwiic でつなぐ） -->
+        <path d="M536 202 V262" stroke="var(--muted)" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <text x="546" y="236" font-size="10" class="mono muted">Qwiic 100mm</text>
+        <rect x="400" y="262" width="220" height="56" rx="6" class="box-acc"/>
+        <text x="414" y="284" font-size="13" font-weight="700">AE-SCD40-BO</text>
+        <text x="414" y="302" font-size="11" class="muted">CO2・温度・湿度 · I2C 0x62</text>
+
         <!-- 出力 -->
         <path d="M765 226 V256" class="flow" marker-end="url(#ah0)"/>
         <rect x="656" y="258" width="218" height="52" rx="6" class="box"/>
-        <text x="670" y="280" font-size="12" font-weight="700">例: 災危通報(気象)(発表)</text>
-        <text x="670" y="298" font-size="11" class="muted">画面表示・ログ・通知</text>
+        <text x="670" y="280" font-size="12" font-weight="700">災危通報・CO2 の値</text>
+        <text x="670" y="298" font-size="11" class="muted">ダッシュボード・ログ・通知</text>
       </svg>
     </div>
-    <p class="caption">CO2 センサー（SCD40）は同じ I2C の線に MAX-M10S の先でつなぐ。アドレスが違う（SCD40 は 0x62）ので、データは混ざらない。中継プログラムは未実装。</p>
+    <p class="caption">CO2 センサー（SCD40）は MAX-M10S の先に Qwiic ケーブル（100mm）でつなぎ、同じ I2C の線を使う。アドレスが違う（MAX-M10S は 0x42、SCD40 は 0x62）ので、データは混ざらない。SCD40 は env-station が直接読み、MAX-M10S は中継プログラムを通して qzss_dcr が読む。中継プログラムは未実装。</p>
   </section>
 
   <!-- 2. 画面構成 -->
