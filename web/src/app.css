@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+@theme {
+	--font-sans: 'Noto Sans CJK JP', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+}
+
+html,
+body {
+	height: 100%;
+	margin: 0;
+	background: var(--color-slate-950);
+	color: var(--color-slate-100);
+	overflow: hidden; /* 大型モニターに出しっぱなしにするのでスクロールさせない */
+	cursor: none;
+}

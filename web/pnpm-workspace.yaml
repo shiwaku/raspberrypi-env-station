@@ -1,0 +1,3 @@
+# 公開直後の悪意あるバージョンを避けるため、公開から 7 日経った版だけを入れる
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
