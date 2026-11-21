@@ -9,8 +9,9 @@
 	let {
 		station,
 		basemaps,
-		intervalS
-	}: { station: Station | null; basemaps: Basemap[]; intervalS: number } = $props();
+		intervalS,
+		scale = 1
+	}: { station: Station | null; basemaps: Basemap[]; intervalS: number; scale?: number } = $props();
 
 	let container: HTMLDivElement;
 	let current = $state(0);
@@ -49,9 +50,9 @@
 				type: 'circle',
 				source: 'station',
 				paint: {
-					'circle-radius': 12,
-					'circle-color': '#f97316',
-					'circle-stroke-width': 4,
+					'circle-radius': 9,
+					'circle-color': '#0017c1', // DADS key-900
+					'circle-stroke-width': 3,
 					'circle-stroke-color': '#ffffff'
 				}
 			});
@@ -61,15 +62,22 @@
 
 	setWorkerUrl(workerUrl);
 
+	let mapRef: MapLibreMap | undefined;
+	$effect(() => {
+		mapRef?.setPixelRatio(window.devicePixelRatio * scale);
+	});
+
 	onMount(() => {
-		const map = new MapLibreMap({
+		const map = (mapRef = new MapLibreMap({
 			container,
 			style: buildStyle(),
 			center: center(),
 			zoom: station ? 10 : 4.5,
 			interactive: false, // 大型モニターに映すだけで、操作はしない
-			attributionControl: { compact: false }
-		});
+			attributionControl: { compact: false },
+			// 画面全体を CSS で拡大するので、その分だけ細かく描いてぼやけないようにする
+			pixelRatio: window.devicePixelRatio * scale
+		}));
 
 		// 背景地図が 2 つ以上なら、決めた間隔で順に切り替える
 		const timer =
@@ -89,10 +97,12 @@
 	});
 </script>
 
-<div class="relative h-full w-full overflow-hidden rounded-xl">
+<div class="relative h-full w-full overflow-hidden rounded-8 border border-solid-gray-200">
 	<div bind:this={container} class="h-full w-full"></div>
-	<div class="absolute top-4 left-4 rounded-lg bg-slate-950/75 px-4 py-2 text-2xl">
-		{station?.name ?? '設置場所が未設定'}
-		<span class="ml-3 text-xl text-slate-400">{BASEMAPS[basemaps[current] ?? 'pale'].label}</span>
+	<div class="absolute top-2 left-2 rounded-6 bg-white/90 px-3 py-1 shadow-1">
+		<span class="text-std-16B-170">{station?.name ?? '設置場所が未設定'}</span>
+		<span class="ml-2 text-dns-14N-130 text-solid-gray-600">
+			{BASEMAPS[basemaps[current] ?? 'pale'].label}
+		</span>
 	</div>
 </div>
