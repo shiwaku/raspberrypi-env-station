@@ -16,6 +16,7 @@ pi = [
 
 [project.scripts]
 env-station = "raspberrypi_env_station.cli:main"
+env-dashboard = "raspberrypi_env_station.dashboard:main"
 
 [dependency-groups]
 dev = [

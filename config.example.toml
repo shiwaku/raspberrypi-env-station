@@ -9,6 +9,15 @@ name = "オフィス"
 latitude = 43.0618
 longitude = 141.3545
 
+# 大型モニター用ダッシュボード（uv run env-dashboard）
+[dashboard]
+host = "127.0.0.1"  # Pi 自身の画面からだけ開く。共用 Wi-Fi には公開しない
+port = 8080
+# 背景地図（地理院タイル）: "pale"（淡色地図）・"std"（標準地図）・"seamlessphoto"（シームレス空中写真）
+# 2 つ以上並べると basemap_interval_s ごとに順に切り替える
+basemaps = ["pale"]
+basemap_interval_s = 600
+
 # 秋月 AE-SCD40-BO（CO2・温度・湿度）
 [[sensors]]
 type = "scd4x"

@@ -2,7 +2,7 @@
 
 室内に置いた Raspberry Pi 4 Model B（8GB）で、CO2・温度・湿度を定期的に計測して SQLite に記録する。
 同じ Pi で、気象庁の防災情報 XML と、みちびき（QZSS）の L1S 信号で配信される災危通報を受け取る。
-結果は、帰宅に使う在来線と出張で使う新幹線の運行状況、よく使う便の遅延・欠航とあわせて、室内の大型モニターに地図とグラフで常時表示する（ダッシュボード・XML 取得・交通情報は未実装）。
+結果は、帰宅に使う在来線と出張で使う新幹線の運行状況、よく使う便の遅延・欠航とあわせて、室内の大型モニターに地図とグラフで常時表示する（ダッシュボードは地図と CO2 まで。警報の一覧・XML 取得・交通情報は未実装）。
 
 **設計図**: https://shiwaku.github.io/raspberrypi-env-station/design.html （元ファイルは [docs/design.html](docs/design.html)。`main` にマージすると GitHub Pages に反映される）
 
@@ -140,6 +140,31 @@ uv run env-station                   # interval_s ごとに計測し続ける（
 
 実機がない PC では `uv sync` してから `uv run env-station --fake` でダミー値を記録できる。
 
+## ダッシュボード（大型モニター）
+
+画面は SvelteKit と MapLibre GL JS（TypeScript）で作り、`web/` で静的ファイルにビルドする。
+Python の `env-dashboard` がそのファイルと計測値の API（`/api/config`・`/api/latest`・`/api/series`）を `127.0.0.1:8080` で配信する。
+画面は 1920×1080 で組んであり、ウィンドウの大きさに合わせて拡大・縮小する。
+
+- 地図: 地理院タイルに設置場所を表示する。`config.toml` の `[dashboard]` の `basemaps` で背景地図（淡色地図・標準地図・シームレス空中写真）を選び、2 つ以上並べると `basemap_interval_s` ごとに切り替わる
+- CO2: 現在値を大きく出し、1,000ppm 以上で黄色、1,500ppm 以上で赤にする。温度・湿度と、直近 24 時間の推移も出す
+- 警報・災危通報の一覧、鉄道・飛行機は枠だけで未実装
+
+```sh
+# Node.js は pnpm が web/package.json の devEngines に従って自動で用意する（Node 26）
+curl -fsSL https://get.pnpm.io/install.sh | sh -   # pnpm が無ければ入れる
+sudo apt install -y fonts-noto-cjk                 # 日本語フォント（入っていなければ）
+
+cd web
+pnpm install
+pnpm build      # web/build に出力
+cd ..
+
+uv run env-dashboard   # http://127.0.0.1:8080/ を Pi の Chromium で開く
+```
+
+画面だけを直すときは、`uv run env-dashboard` を動かしたまま `cd web && pnpm dev` で開発用サーバーを起動する（API は 8080 に中継される）。起動時に全画面で開く設定は [#10](https://github.com/shiwaku/raspberrypi-env-station/issues/10) で追加する。
+
 ## 災危通報の受信
 
 デコードと表示は [qzss_dcr](https://github.com/fractional-n/qzss_dcr)（MIT）に任せる。このリポジトリには含めず、別に clone して動かす。
@@ -186,6 +211,10 @@ sqlite3 data/readings.sqlite \
 uv run pytest
 uv run ruff check
 uv run ruff format
+
+cd web
+pnpm check   # svelte-check（TypeScript の型チェック）
+pnpm build
 ```
 
 ## ライセンス
