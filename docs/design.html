@@ -178,7 +178,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <path d="M542 160 H640" stroke="var(--wire-yellow)" stroke-width="3"/>
         <path d="M542 178 H640" stroke="var(--wire-black)" stroke-width="3"/>
         <text x="552" y="98" font-size="11" class="muted">Qwiic ケーブル</text>
-        <text x="552" y="113" font-size="10" class="mono muted">I2C 0x42</text>
+        <text x="552" y="113" font-size="9" class="mono muted">150mm · I2C 0x42</text>
 
         <!-- Pi -->
         <rect x="640" y="66" width="250" height="160" rx="8" class="pcb"/>
@@ -399,6 +399,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <path d="M311 135 V118 H500" stroke="var(--wire-blue)" stroke-width="3" fill="none"/>
         <path d="M311 169 V152 H500" stroke="var(--wire-yellow)" stroke-width="3" fill="none"/>
         <path d="M351 169 H500" stroke="var(--wire-black)" stroke-width="3" fill="none"/>
+        <text x="410" y="44" font-size="10" class="muted">SCD40 付属ケーブル 150mm</text>
         <g font-size="10">
           <text x="410" y="77" style="fill:var(--wire-red)">赤 3.3V</text>
           <text x="410" y="111" style="fill:var(--wire-blue)">青 SDA</text>
@@ -419,10 +420,10 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         </g>
         <!-- アンテナ -->
         <path d="M760 66 V30" class="cable"/>
-        <text x="748" y="26" font-size="11" text-anchor="end">アクティブアンテナ（窓際に置く）</text>
+        <text x="748" y="26" font-size="11" text-anchor="end">アクティブアンテナ（ケーブル 3m・窓際に置く）</text>
         <!-- MAX-M10S → SCD40（Qwiic-Qwiic ケーブル） -->
         <path d="M640 190 V268" class="cable"/>
-        <text x="652" y="226" font-size="11">Qwiic-Qwiic ケーブル</text>
+        <text x="652" y="226" font-size="11">Qwiic-Qwiic ケーブル 100mm</text>
         <text x="652" y="242" font-size="10" class="muted">（注文済み）</text>
         <!-- AE-SCD40-BO -->
         <rect x="516" y="268" width="264" height="84" rx="6" class="box-acc"/>
@@ -436,7 +437,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <text x="516" y="420" font-size="10" class="muted">確認: i2cdetect -y 1 で 42 と 62 が出る</text>
       </svg>
     </div>
-    <p class="caption">はんだ付けをしないため、MAX-M10S は UART ではなく Qwiic（I2C）でつなぐ。今 SCD40 に差している付属ケーブルを MAX-M10S の Qwiic コネクタに差し替え、もう一つの Qwiic コネクタから Qwiic-Qwiic ケーブルで SCD40 の CN1 へつなぐ。付属ケーブルの Pi 側はメスのソケットなので、そのまま GPIO ピンに差せる。電源は 3.3V（1 番）で、MAX-M10S は Qwiic の 3.3V で動く（SparkFun 18037 の資料による）。線の色は Qwiic の標準（黒 GND・赤 3.3V・青 SDA・黄 SCL）。配線を抜き差しするときは Pi の電源を切る。</p>
+    <p class="caption">はんだ付けをしないため、MAX-M10S は UART ではなく Qwiic（I2C）でつなぐ。今 SCD40 に差している付属ケーブル（150mm）を MAX-M10S の Qwiic コネクタに差し替え、もう一つの Qwiic コネクタから Qwiic-Qwiic ケーブル（100mm）で SCD40 の CN1 へつなぐ。アンテナのケーブルは 3m なので、窓際から Pi まで 3m 以内に置く。付属ケーブルの Pi 側はメスのソケットなので、そのまま GPIO ピンに差せる。電源は 3.3V（1 番）で、MAX-M10S は Qwiic の 3.3V で動く（SparkFun 18037 の資料による）。線の色は Qwiic の標準（黒 GND・赤 3.3V・青 SDA・黄 SCL）。配線を抜き差しするときは Pi の電源を切る。</p>
   </section>
 
   <!-- 5. ソフトウェア -->
@@ -499,10 +500,10 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <tbody>
           <tr><td>Raspberry Pi 4 Model B 8GB（公式ケース）</td><td>本体</td><td><span class="pill ok">手元にある</span></td></tr>
           <tr><td>microSD 64GB（KIOXIA EXCERIA）</td><td>OS とデータ</td><td><span class="pill ok">手元にある</span></td></tr>
-          <tr><td>秋月 AE-SCD40-BO</td><td>CO2・温度・湿度</td><td><span class="pill ok">購入済み</span></td></tr>
+          <tr><td>秋月 AE-SCD40-BO</td><td>CO2・温度・湿度。付属ケーブル 150mm（Pi と MAX-M10S の間に使う）</td><td><span class="pill ok">購入済み</span></td></tr>
           <tr><td>SparkFun GNSS Receiver Breakout - MAX-M10S（Qwiic、18037）</td><td>災危通報の受信。SMA 端子と Qwiic コネクタ 2 つ。DigiKey で購入</td><td><span class="pill warn">注文済み</span></td></tr>
           <tr><td>Quectel YG0035AA（L1 アクティブアンテナ、3m、SMA）</td><td>窓際で衛星の電波を拾う。DigiKey で購入</td><td><span class="pill warn">注文済み</span></td></tr>
-          <tr><td>SparkFun Qwiic ケーブル 100mm（17259）</td><td>MAX-M10S と SCD40 をつなぐ。Pi と MAX-M10S の間は SCD40 の付属ケーブル（Pi 側がメスのソケット）を使う。DigiKey で購入</td><td><span class="pill warn">注文済み</span></td></tr>
+          <tr><td>SparkFun Qwiic ケーブル 100mm（17259）</td><td>MAX-M10S と SCD40 をつなぐ。Pi と MAX-M10S の間は SCD40 の付属ケーブル（150mm、Pi 側がメスのソケット）を使う。DigiKey で購入</td><td><span class="pill warn">注文済み</span></td></tr>
           <tr><td>USB-C 電源 5V 3A</td><td>Pi 4 の電源</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>micro-HDMI to HDMI ケーブル</td><td>大型モニターへの映像出力（5m 超ならアクティブケーブル）</td><td><span class="pill todo">要確認</span></td></tr>
           <tr><td>USB キーボード・マウス</td><td>最初の起動と、IP アドレスの確認（以降の保守は PC の Tera Term から SSH）</td><td><span class="pill todo">要確認</span></td></tr>
