@@ -114,7 +114,7 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
     <div class="answers">
       <div class="answer"><span class="q">どんな情報が配信されているか</span><p>気象庁の防災気象情報（MT43）12 種類と、J アラート・L アラート（MT44）。気象は特別警報など 4 つの情報だけで、普通の警報・注意報は来ない。</p><a href="#content">詳しく</a></div>
       <div class="answer"><span class="q">配信頻度</span><p>MT43・MT44 とも 4 秒に 1 通。同じ通報を 5 分〜24 時間繰り返す。年間件数の統計は見つからない。訓練は月 4 回。</p><a href="#freq">詳しく</a></div>
-      <div class="answer"><span class="q">ネット配信との違い</span><p>衛星は回線なしで届くが、コード化した要約で種類も限られる。気象庁 XML は全文だが、緊急地震速報と J アラートは入っていないとみられる。</p><a href="#net">詳しく</a></div>
+      <div class="answer"><span class="q">ネット配信との違い</span><p>衛星は回線なしで届くが、コード化した要約で種類も限られる。気象庁 XML は全文だが、緊急地震速報と J アラートは公開されていない。</p><a href="#net">詳しく</a></div>
       <div class="answer"><span class="q">法的な位置づけ</span><p>内閣府の無保証の補完サービスで、公式の警報の伝達手段ではない。そのまま表示するなら許可は不要とみられるが、独自の予想震度などは出さない。</p><a href="#law">詳しく</a></div>
     </div>
   </section>
@@ -248,14 +248,14 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
         <tr><td>届き方</td><td>衛星から直接。回線がいらない</td><td>インターネットで取りに行く（PULL 型、登録不要）</td></tr>
         <tr><td>更新</td><td>4 秒に 1 通</td><td>高頻度フィードは毎分更新・直近 10 分以上。長期フィードは毎時更新・数日分</td></tr>
         <tr><td>情報量</td><td>1 通 212 ビットのコード。見出しや本文の文章はない</td><td>電文の全文（見出し・本文・細かい区域）</td></tr>
-        <tr><td>緊急地震速報</td><td>警報が届く</td><td>公開フィードには入っていない <span class="tag guess">推測</span></td></tr>
+        <tr><td>緊急地震速報</td><td>警報が届く</td><td>公開されていない。気象庁の電文一覧に「緊急地震速報等、公開されない電文もあります」とある。受けるには気象業務支援センターか許可事業者の配信を使う</td></tr>
         <tr><td>気象警報・注意報</td><td>特別警報などに限られる</td><td>すべて</td></tr>
-        <tr><td>J アラート・L アラート</td><td>DCX で届く</td><td>入っていない <span class="tag guess">推測</span></td></tr>
+        <tr><td>J アラート・L アラート</td><td>DCX で届く</td><td>入っていない。どちらも気象庁の情報ではなく、電文一覧にもない</td></tr>
         <tr><td>止まるとき</td><td>衛星が見えないとき。内閣府は「保証はない」としている</td><td>回線断・停電。気象庁は「停止・遅延することがある」とし、確実な配信には気象業務支援センターか許可事業者を案内している</td></tr>
         <tr><td>使い方の制限</td><td>なし（無償、誰でも）</td><td>1 日 10GB を超えると IP 遮断</td></tr>
       </tbody>
     </table></div>
-    <p>普段の詳しい情報は XML から、緊急地震速報・J アラートと回線が止まったときの予備は衛星から、という分担になる <span class="tag guess">推測</span>。内閣府や気象庁が両者の関係を直接説明した文書は見つからなかった <span class="tag unk">未確認</span>。公式の伝達経路は、J アラートなら防災行政無線や緊急速報メール、L アラートならテレビやポータルサイト。</p>
+    <p>普段の詳しい情報は XML から、緊急地震速報・J アラートと回線が止まったときの予備は衛星から、という分担にする。内閣府や気象庁が両者の関係を直接説明した文書は見つからなかった <span class="tag unk">未確認</span>。公式の伝達経路は、J アラートなら防災行政無線や緊急速報メール、L アラートならテレビやポータルサイト。</p>
   </section>
 
   <section aria-labelledby="law-h" id="law">
@@ -373,7 +373,6 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
           <li>年間・1 日あたりの配信件数</li>
           <li>気象庁の発表から衛星で届くまでの時間</li>
           <li>災危通報の根拠になる法律、防災基本計画での扱い</li>
-          <li>公開 XML に緊急地震速報が入っていないこと（長期フィードを見た範囲になかっただけ）</li>
           <li>L アラートのどの種類が DCX で配信されるか</li>
           <li>アジア太平洋向けの DCX が始まったか</li>
           <li>SFRBX の 3 バイト目の意味（実機で確かめる）</li>
@@ -400,7 +399,7 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
         <li><a href="https://www.bousai.go.jp/kaigirep/hakusho/r08/honbun/2b_3s_01_02.html">防災白書 令和 8 年版</a></li>
       </ul></div>
       <div class="sub"><h3>気象庁・法令</h3><ul>
-        <li><a href="https://xml.kishou.go.jp/">気象庁防災情報 XML</a>・<a href="https://xml.kishou.go.jp/xmlpull.html">PULL 型</a>・<a href="https://xml.kishou.go.jp/qanda.html">Q&amp;A</a></li>
+        <li><a href="https://xml.kishou.go.jp/">気象庁防災情報 XML</a>・<a href="https://xml.kishou.go.jp/xmllist.pdf">公開する電文一覧</a>・<a href="https://xml.kishou.go.jp/xmlpull.html">PULL 型</a>・<a href="https://xml.kishou.go.jp/qanda.html">Q&amp;A</a></li>
         <li><a href="https://www.jma.go.jp/jma/kishou/info/ml-23.html">気象業務法 第 23 条</a>・<a href="https://laws.e-gov.go.jp/api/1/lawdata/327CO0000000471">施行令</a></li>
         <li><a href="https://www.jma.go.jp/jma/kishou/minkan/kyoka.html">予報業務の許可</a>・<a href="https://www.jma.go.jp/jma/kishou/minkan/q_a_m.html">Q&amp;A</a>・<a href="https://www.jma.go.jp/jma/kishou/minkan/minkan_jishin.html">地震動の予報業務</a></li>
         <li><a href="https://www.jma.go.jp/jma/kishou/know/jishin/eew/katsuyou/receiver.html">緊急地震速報の受信端末</a></li>
