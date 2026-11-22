@@ -181,7 +181,7 @@ python3 qzss_dcr.py --tcp localhost:2101 --configure-m10 --ubx-port I2C
 
 `--configure-m10` の設定は MAX-M10S の RAM にだけ書かれ、電源を切ると消える。起動のたびに付けるか、`--persist` で BBR（バックアップ用のメモリ）にも書く。
 
-アンテナは南向きの窓際に置く。静止軌道の QZS-3 が南の空にいるため。みちびきが見えていれば、災危通報の枠（MT43 と MT44）はそれぞれ 4 秒ごとに届く。平常時は中身のない通報なので、画面には何も出ない。配信される情報と頻度、ネット配信との違い、法的な位置づけ、L1S 信号の仕様、訓練配信の日程は [docs/qzss-dcr.md](docs/qzss-dcr.md) にまとめた。
+アンテナは南向きの窓際に置く。静止軌道の QZS-3 が南の空にいるため。みちびきが見えていれば、災危通報の枠（MT43 と MT44）はそれぞれ 4 秒ごとに届く。平常時は中身のない通報なので、画面には何も出ない。配信される情報と頻度、ネット配信との違い、法的な位置づけ、L1S 信号の仕様、訓練配信の日程は [みちびき災危通報の整理](https://shiwaku.github.io/raspberrypi-env-station/qzss-dcr.html)（元ファイルは [docs/qzss-dcr.html](docs/qzss-dcr.html)）にまとめた。
 
 ## データ
 

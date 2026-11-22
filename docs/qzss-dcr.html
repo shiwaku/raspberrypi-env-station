@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>みちびき災危通報の整理</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: DADS に沿った 1 カラムの読み物。冒頭に 4 つの問いへの答え、続いて節ごとの詳細と表 */
+:root {
+  --bg: #ffffff;
+  --surface: #f8f8fb;
+  --fg: #1a1a1c;
+  --muted: #626264;
+  --line: #d8d8db;
+  --accent: #0017c1;
+  --accent-soft: #e8f1fe;
+  --warn: #b04a00;
+  --warn-soft: #fff4e5;
+  --ok: #197a4b;
+  --ok-soft: #e6f5ec;
+  --font-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+  --font-mono: "Noto Sans Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1c1c21; --fg: #ececef; --muted: #a9a9b0; --line: #3a3a42;
+    --accent: #9db7ff; --accent-soft: #1c2550; --warn: #ffb067; --warn-soft: #3a2614;
+    --ok: #6fd3a0; --ok-soft: #15301f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1c1c21; --fg: #ececef; --muted: #a9a9b0; --line: #3a3a42;
+  --accent: #9db7ff; --accent-soft: #1c2550; --warn: #ffb067; --warn-soft: #3a2614;
+  --ok: #6fd3a0; --ok-soft: #15301f; color-scheme: dark;
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.75; }
+.wrap {
+  max-width: 880px; margin: 0 auto;
+  padding-block: 40px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 56px;
+}
+header { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+h1 { font-size: 32px; line-height: 1.4; margin: 0; text-wrap: balance; }
+h2 { font-size: 24px; line-height: 1.5; margin: 0; text-wrap: balance; }
+h3 { font-size: 18px; line-height: 1.6; margin: 0; }
+p { margin: 0; max-width: 68ch; }
+ul, ol { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; max-width: 68ch; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code { font-family: var(--font-mono); font-size: .88em; background: var(--surface); border: 1px solid var(--line); padding: 0 5px; border-radius: 4px; }
+.lead { color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--muted); }
+section { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sec-head { border-bottom: 2px solid var(--fg); padding-bottom: 8px; }
+.sub { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+.answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.answer { border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; background: var(--bg); }
+.answer .q { font-size: 14px; font-weight: 700; color: var(--accent); }
+.answer p { font-size: 15px; }
+.answer a { font-size: 14px; }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 15px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+thead th { background: var(--surface); font-size: 14px; font-weight: 700; }
+td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 0 8px; border-radius: 999px; white-space: nowrap; line-height: 1.8; }
+.tag.guess { background: var(--accent-soft); color: var(--accent); }
+.tag.unk { background: var(--warn-soft); color: var(--warn); }
+.tag.p1 { background: var(--warn-soft); color: var(--warn); }
+.tag.p2 { background: var(--accent-soft); color: var(--accent); }
+.tag.p3 { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+
+.note { border-left: 4px solid var(--warn); background: var(--warn-soft); padding: 14px 18px; border-radius: 0 8px 8px 0; display: flex; flex-direction: column; gap: 8px; }
+.note strong { color: var(--warn); }
+.rule { border-left: 4px solid var(--accent); background: var(--accent-soft); padding: 14px 18px; border-radius: 0 8px 8px 0; display: flex; flex-direction: column; gap: 8px; }
+
+.slots { display: grid; grid-template-columns: repeat(12, minmax(44px, 1fr)); gap: 4px; min-width: 600px; padding: 14px; }
+.slots .t { font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-align: center; }
+.slots .s { font-size: 12px; font-weight: 700; text-align: center; padding: 6px 0; border-radius: 4px; border: 1px solid var(--line); }
+.s.slas { background: var(--surface); color: var(--muted); font-weight: 400; }
+.s.mt43 { background: var(--accent-soft); color: var(--accent); }
+.s.mt44 { background: var(--warn-soft); color: var(--warn); }
+.slots .row-label { grid-column: 1 / -1; font-size: 13px; font-weight: 700; margin-top: 6px; }
+
+.todo { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.todo li { list-style: none; }
+.sources { font-size: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 24px; }
+.sources ul { padding-left: 1.1em; }
+.small { font-size: 14px; color: var(--muted); }
+@media (max-width: 480px) { h1 { font-size: 26px; } h2 { font-size: 21px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">raspberrypi-env-station · 2026-11-22 時点</span>
+    <h1>みちびき災危通報の整理</h1>
+    <p class="lead">MAX-M10S で受けたみちびきの災危通報を、コワーキングのモニターに出すにあたって調べたこと。現行の仕様書（IS-QZSS-DCR-017・IS-QZSS-DCX-004）とアプリケーションノート第 3.0 版をもとにした。</p>
+    <div class="legend"><span><span class="tag guess">推測</span> 資料に書かれておらず、資料から判断したこと</span><span><span class="tag unk">未確認</span> 資料が見つからなかったこと</span></div>
+  </header>
+
+  <section aria-labelledby="ans">
+    <h2 id="ans" class="sec-head">4 つの問いへの答え</h2>
+    <div class="answers">
+      <div class="answer"><span class="q">どんな情報が配信されているか</span><p>気象庁の防災気象情報（MT43）12 種類と、J アラート・L アラート（MT44）。気象は特別警報など 4 つの情報だけで、普通の警報・注意報は来ない。</p><a href="#content">詳しく</a></div>
+      <div class="answer"><span class="q">配信頻度</span><p>MT43・MT44 とも 4 秒に 1 通。同じ通報を 5 分〜24 時間繰り返す。年間件数の統計は見つからない。訓練は月 4 回。</p><a href="#freq">詳しく</a></div>
+      <div class="answer"><span class="q">ネット配信との違い</span><p>衛星は回線なしで届くが、コード化した要約で種類も限られる。気象庁 XML は全文だが、緊急地震速報と J アラートは入っていないとみられる。</p><a href="#net">詳しく</a></div>
+      <div class="answer"><span class="q">法的な位置づけ</span><p>内閣府の無保証の補完サービスで、公式の警報の伝達手段ではない。そのまま表示するなら許可は不要とみられるが、独自の予想震度などは出さない。</p><a href="#law">詳しく</a></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="what">
+    <h2 id="what" class="sec-head">災危通報とは</h2>
+    <p>みちびき（準天頂衛星システム）が L1S という信号で送っている防災情報。内閣府のサービスで、誰でも無償で受けられる。L1S は本来、測位の補正情報（サブメータ級測位補強サービス、SLAS）を送る信号で、災危通報はその一部の時間を借りて送られる。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>名前</th><th>メッセージタイプ</th><th>中身</th><th>開始</th></tr></thead>
+      <tbody>
+        <tr><td>災危通報（DC Report）</td><td class="num">MT43</td><td>気象庁の防災気象情報を独自の形式に変換したもの</td><td class="num">2018</td></tr>
+        <tr><td>災危通報（拡張）（DCX）</td><td class="num">MT44</td><td>J アラート・L アラート・自治体からの直接配信。国際的な共通形式（CAMF）で送る</td><td class="num">2024-04-01</td></tr>
+      </tbody>
+    </table></div>
+    <p>内閣府は、電源のある屋外の機器（街灯・サイネージ）や車載機器での利用を想定し、通信網が弱い山間部や地上の通信網が被災したときに役立つとしている。</p>
+  </section>
+
+  <section aria-labelledby="content" id="content">
+    <h2 class="sec-head" id="content-h">どんな情報が配信されているか</h2>
+    <div class="sub">
+      <h3>MT43（気象庁の防災気象情報）</h3>
+      <p>災害の種類は 12 種類。種類ごとに、配信を始める条件と配信を続ける時間が決まっている。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>種類</th><th>配信を始める条件</th><th>続ける時間</th></tr></thead>
+        <tbody>
+          <tr><td>緊急地震速報</td><td>「警報」の発表時のみ（予報は配信しない）</td><td>5 分</td></tr>
+          <tr><td>震源</td><td>震源に関する情報、震源・震度に関する情報の発表時</td><td>2 時間</td></tr>
+          <tr><td>震度</td><td>都道府県の最大震度が 4 以上</td><td>2 時間</td></tr>
+          <tr><td>南海トラフ地震</td><td>臨時情報などの発表時</td><td>発表 24 時間、取消 2 時間</td></tr>
+          <tr><td>津波</td><td>津波警報・大津波警報（その後の注意報・予報・解除も更新として流れる）</td><td>最大 24 時間</td></tr>
+          <tr><td>北西太平洋津波</td><td>第 1 報から</td><td>10 時間</td></tr>
+          <tr><td>火山</td><td>噴火警報（レベル 2〜5）、火口周辺警報、噴火など</td><td>24 時間</td></tr>
+          <tr><td>降灰</td><td>降灰予報の「速報」と「詳細」（「定時」は配信しない）</td><td>有効時刻まで、または 1 時間</td></tr>
+          <tr><td>気象</td><td>特別警報（暴風雪・大雨・暴風・大雪・波浪・高潮）、土砂災害警戒情報</td><td>24 時間</td></tr>
+          <tr><td>気象</td><td>記録的短時間大雨情報、竜巻注意情報</td><td>3 時間</td></tr>
+          <tr><td>洪水</td><td>氾濫警戒情報・氾濫危険情報（氾濫発生情報は更新として流れる）</td><td>24 時間</td></tr>
+          <tr><td>台風</td><td>台風情報の発表ごと</td><td>3 時間</td></tr>
+          <tr><td>海上</td><td>海上警報（着氷・濃霧・うねり・風・強風・暴風・台風）</td><td>有効時刻まで、または 24 時間。解除は 3 時間</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note"><p><strong>普通の気象警報（大雨警報・洪水警報など）と注意報は配信されない。</strong>気象で流れるのは特別警報と、上の 4 つの情報だけ。</p></div>
+      <p>通報には優先度の区分があり、高いものほど頻繁に送られる。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>区分</th><th>主なもの</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag p1">最優先</span></td><td>緊急地震速報、津波警報・大津波警報</td></tr>
+          <tr><td><span class="tag p2">優先</span></td><td>震源、震度、北西太平洋津波、噴火警報（レベル 4・5、居住地域厳重警戒など）、気象、洪水 など</td></tr>
+          <tr><td><span class="tag p3">通常</span></td><td>津波の解除、噴火警報（レベル 2・3）、火口周辺警報 など</td></tr>
+          <tr><td><span class="tag p3">訓練・試験</span></td><td>訓練用・試験用の通報</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <h3>MT44（DCX）</h3>
+      <ul>
+        <li><strong>J アラート</strong>：消防庁・関係省庁からの国民保護情報。今使われているのはミサイル関連の定型文で、ミサイル以外（ゲリラ・大規模テロなど）の枠は「予約」</li>
+        <li><strong>L アラート</strong>：マルチメディア振興センター（FMMC）経由の避難情報</li>
+        <li><strong>自治体からの直接配信</strong></li>
+      </ul>
+      <p>避難行動の文は決まった文例から選んで送る。J アラートの文（ミサイル発射、通過、海に落下、日本に飛来しない、直ちに避難、迎撃により破壊 など）、共通の文（「直ちに命を守るための最善の行動を。」）、向き（とどまる・向かう・離れる）と場所（堅牢な建物、3 階以上、地下、山、水域、化学工場、崖）の組み合わせ。重大度は 4 段階（不明・中・重大・極めて重大）。</p>
+      <p>L アラートの「高齢者等避難・避難指示・緊急安全確保」のどれを配信するかの決まりは見つからなかった <span class="tag unk">未確認</span>。アジア太平洋地域向けは 2025 年度開始の予定とされていたが、始まったかは確認できていない <span class="tag unk">未確認</span>。</p>
+    </div>
+
+    <div class="sub">
+      <h3>1 通に入る情報</h3>
+      <p>1 通は 250 ビットで、中身に使えるのは 212 ビット。文章は送らず、すべてコードで送る。日本語の文にするのは受信機の側（qzss_dcr なら azarashi）。</p>
+      <ul>
+        <li>発表時刻は月・日・時・分まで（秒はない）</li>
+        <li>1 通に入る地域の数：緊急地震速報は予報区を 80 ビットの表で送るので何区でも 1 通、震度 16 件、海上 8 件、気象 6 件、津波・火山・北西太平洋津波 5 件。超える分は複数通に分ける</li>
+        <li>MT44 の地域は、楕円（中心・軸の長さ・向き）、市区町村コード、都道府県コードの一覧のどれか</li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="freq-h" id="freq">
+    <h2 id="freq-h" class="sec-head">配信頻度</h2>
+    <div class="sub">
+      <h3>送る順番</h3>
+      <p>1 秒に 1 メッセージ。通常は「SLAS → MT44 → SLAS → MT43」を繰り返し、MT43 と MT44 はそれぞれ 4 秒に 1 通届く。J アラートのときは MT43 の枠も借りて先に送る。</p>
+      <div class="table-wrap" role="img" aria-label="通常は SLAS、MT44、SLAS、MT43 の順に 1 秒ずつ繰り返す。J アラートのときは 3 秒目と 5 秒目の MT43 の枠も MT44 になり、7 秒目は MT43 に戻る">
+        <div class="slots">
+          <div class="row-label">通常</div>
+          <div class="t">t</div><div class="t">+1</div><div class="t">+2</div><div class="t">+3</div><div class="t">+4</div><div class="t">+5</div><div class="t">+6</div><div class="t">+7</div><div class="t">+8</div><div class="t">+9</div><div class="t">+10</div><div class="t">+11</div>
+          <div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt43">MT43</div><div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt43">MT43</div><div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt43">MT43</div>
+          <div class="row-label">J アラートを送るとき</div>
+          <div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt43">MT43</div><div class="s slas">SLAS</div><div class="s mt44">MT44</div><div class="s slas">SLAS</div><div class="s mt43">MT43</div>
+        </div>
+      </div>
+      <ul>
+        <li>MT43 が最優先の通報（緊急地震速報・津波警報・大津波警報）を送っている間は、J アラートは枠を借りない。2 回続けて借りることもない</li>
+        <li>配信する情報がないときは、中身のないメッセージ（MT63）を送る。qzss_dcr は既定で表示しない（<code>--show-null</code> で表示）</li>
+        <li>MT43 は区分ごとの比率で送る。最優先 : 優先 : 通常 = 20 : 4 : 1。訓練・試験は通常の 4 倍で、最優先が流れている間は送らない</li>
+        <li>同じ区分に通報が複数あれば順番に回し、上の「続ける時間」が過ぎるまで繰り返す</li>
+        <li>MT44 の国内向けは、ふつう 1 通を 2 回送る</li>
+      </ul>
+    </div>
+    <div class="sub">
+      <h3>実際にどれくらい届くか</h3>
+      <ul>
+        <li>年間や 1 日あたりの配信件数の統計は見つからなかった <span class="tag unk">未確認</span></li>
+        <li>実例：2019-02-21 21:22 の緊急地震速報は、21:22:58〜21:24:34 に 24 回配信された</li>
+        <li>平常時でも海上警報（着氷・風など）が届いた受信例がある。DCX は平常時は空で、配信はまれ</li>
+        <li>内閣府の X アカウント @DisasterRept_QZ が配信のたびに投稿している。土砂災害警戒情報や記録的短時間大雨情報が多い</li>
+        <li>海上警報はほぼいつもどこかで出ているので、MT43 が空になる時間は短いと思われる <span class="tag guess">推測</span></li>
+      </ul>
+    </div>
+    <div class="sub">
+      <h3>届くまでの時間</h3>
+      <p>気象庁の発表から衛星で届くまでの公式な数値は見つからなかった <span class="tag unk">未確認</span>。上の実例では発表 21:22（分単位）に対して配信開始 21:22:58 で、1 分未満としか言えない <span class="tag guess">推測</span>。</p>
+    </div>
+    <div class="sub">
+      <h3>訓練・試験の配信</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>種類</th><th>日時（基本）</th><th>直近の予定</th></tr></thead>
+        <tbody>
+          <tr><td>MT43</td><td>毎月 第 2 火曜 13〜15 時、第 4 木曜 10〜12 時</td><td class="num">2026-11-26、12-08、12-24</td></tr>
+          <tr><td>MT44（DCX）</td><td>毎月 第 1 火曜 13〜15 時、第 3 木曜 10〜12 時</td><td class="num">2026-12-01、12-17、2027-01-05、01-21</td></tr>
+        </tbody>
+      </table></div>
+      <p>最優先の情報が流れると訓練は中断し、中断した分は後から送らない。全国一斉の J アラート訓練も訓練の印を付けて流れる。MAX-M10S が届いたら、この日時に合わせて受信を確かめる。</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="net-h" id="net">
+    <h2 id="net-h" class="sec-head">ネットで配信されている情報との違い</h2>
+    <p>このプロジェクトでは、気象庁防災情報 XML（インターネット、PULL 型）も取得する予定。</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th></th><th>災危通報（衛星）</th><th>気象庁防災情報 XML（ネット）</th></tr></thead>
+      <tbody>
+        <tr><td>届き方</td><td>衛星から直接。回線がいらない</td><td>インターネットで取りに行く（PULL 型、登録不要）</td></tr>
+        <tr><td>更新</td><td>4 秒に 1 通</td><td>高頻度フィードは毎分更新・直近 10 分以上。長期フィードは毎時更新・数日分</td></tr>
+        <tr><td>情報量</td><td>1 通 212 ビットのコード。見出しや本文の文章はない</td><td>電文の全文（見出し・本文・細かい区域）</td></tr>
+        <tr><td>緊急地震速報</td><td>警報が届く</td><td>公開フィードには入っていない <span class="tag guess">推測</span></td></tr>
+        <tr><td>気象警報・注意報</td><td>特別警報などに限られる</td><td>すべて</td></tr>
+        <tr><td>J アラート・L アラート</td><td>DCX で届く</td><td>入っていない <span class="tag guess">推測</span></td></tr>
+        <tr><td>止まるとき</td><td>衛星が見えないとき。内閣府は「保証はない」としている</td><td>回線断・停電。気象庁は「停止・遅延することがある」とし、確実な配信には気象業務支援センターか許可事業者を案内している</td></tr>
+        <tr><td>使い方の制限</td><td>なし（無償、誰でも）</td><td>1 日 10GB を超えると IP 遮断</td></tr>
+      </tbody>
+    </table></div>
+    <p>普段の詳しい情報は XML から、緊急地震速報・J アラートと回線が止まったときの予備は衛星から、という分担になる <span class="tag guess">推測</span>。内閣府や気象庁が両者の関係を直接説明した文書は見つからなかった <span class="tag unk">未確認</span>。公式の伝達経路は、J アラートなら防災行政無線や緊急速報メール、L アラートならテレビやポータルサイト。</p>
+  </section>
+
+  <section aria-labelledby="law-h" id="law">
+    <h2 id="law-h" class="sec-head">法的な位置づけ</h2>
+    <div class="sub">
+      <h3>災危通報そのもの</h3>
+      <ul>
+        <li>防災白書（令和 8 年版）に、内閣府が「準天頂衛星システムによる、災害関連情報の伝送を行う災害・危機管理通報サービス」を提供したとある</li>
+        <li>利用条件：誰でも無償で使える。内容と提供は保証されない。人の生命・身体・財産に関わる用途では、冗長化・バックアップ・フェイルセーフなどの事故防止策を必ず取る。予告なく停止・変更することがある。内閣府と準天頂システムサービス株式会社は損害に責任を負わない</li>
+        <li>根拠になる法律の条文と、防災基本計画での扱いは確認できなかった <span class="tag unk">未確認</span></li>
+        <li>保証がなくフェイルセーフを求めている以上、公式の警報の伝達手段ではなく補完的なものと扱うのが妥当 <span class="tag guess">推測</span></li>
+      </ul>
+    </div>
+    <div class="sub">
+      <h3>気象業務法</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>条文</th><th>内容</th><th>このプロジェクトでは</th></tr></thead>
+        <tbody>
+          <tr><td>第 23 条 警報の制限</td><td>気象庁以外の者は警報をしてはならない。一般的な警戒の呼び掛けは当たらないが、時と場所を具体的に示すと独自の警報とみなされるおそれがある</td><td>独自の警戒の呼び掛けは出さない</td></tr>
+          <tr><td>第 17 条 予報業務の許可</td><td>気象庁以外が予報業務をするには許可がいる。気象庁の予報を解説するだけなら不要。地震動は「気象庁や許可事業者が発表した予報をそのまま表示するなど許可が不要な場合があります」。受信端末で任意地点の震度や揺れが来るまでの時間を予想するには許可がいる</td><td>そのまま表示するだけなので許可・届出は不要 <span class="tag guess">推測</span>。「ここの予想震度」「揺れまであと◯秒」は計算しない</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="sub">
+      <h3>気象庁の情報の利用規約</h3>
+      <ul>
+        <li>気象庁 HP のコンテンツは「公共データ利用規約（第 1.0 版）」に従う。出典を書く（例：「出典：気象庁ホームページ（URL）」）。加工した場合はそう書く。国が作ったかのような見せ方をしない</li>
+        <li>XML の第三者提供や二次利用は、気象業務法の趣旨に反しない限り原則として制限がなく、商用でもよい</li>
+        <li>公開 XML を使った行為について、気象庁は責任を負わない</li>
+      </ul>
+    </div>
+    <div class="sub">
+      <h3>J アラート・L アラート</h3>
+      <ul>
+        <li>J アラートは消防庁が自治体へ送り、防災行政無線などを自動で起動する仕組み。L アラートは FMMC が運営し、利用には申し込みがいる</li>
+        <li>個人が本体を直接受ける経路はない。DCX 経由なら内閣府の無償・誰でも使える条件で受けられる <span class="tag guess">推測</span></li>
+        <li>DCX 経由で受けて表示することを制限する決まりは見つからなかった</li>
+      </ul>
+    </div>
+    <div class="rule">
+      <h3>モニターに書くこと</h3>
+      <ol>
+        <li>「みちびき災危通報（内閣府）と気象庁防災情報 XML を受信して表示しています。内容は保証されず、受信できない・遅れることがあります」</li>
+        <li>「公式の警報の伝達手段ではありません。テレビ・ラジオ・緊急速報メール・自治体の防災無線を優先してください」</li>
+        <li>出典。要約・加工したものはそう書く</li>
+        <li>発表時刻と受信時刻、受信経路（衛星かネットか）を分けて示す</li>
+        <li>独自の予想震度・揺れまでの秒数・独自の警戒の呼び掛けは出さない</li>
+        <li>訓練・試験の通報は「訓練」とはっきり表示する</li>
+      </ol>
+      <p class="small">上の利用条件と規約から判断したもの <span class="tag guess">推測</span></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="sig-h">
+    <h2 id="sig-h" class="sec-head">信号と受信の仕組み</h2>
+    <div class="sub">
+      <h3>L1S 信号</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>項目</th><th>値</th></tr></thead>
+        <tbody>
+          <tr><td>周波数</td><td>L1 帯 1575.42MHz（GPS の L1 と同じ。L1 対応のアンテナでよい）</td></tr>
+          <tr><td>拡散符号</td><td>BPSK、1.023Mcps・1023 チップ・1ms。GPS L1C/A と同じ符号系列</td></tr>
+          <tr><td>伝送速度</td><td>250bps（畳み込み符号化後 500sps）</td></tr>
+          <tr><td>1 メッセージ</td><td>250 ビット = 1 秒。毎秒 1 個</td></tr>
+          <tr><td>メッセージの形</td><td>プリアンブル 8 ＋ メッセージタイプ 6 ＋ データ 212 ＋ CRC 24 ビット</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="sub">
+      <h3>送る衛星</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>衛星</th><th>L1S の PRN</th><th>軌道</th><th>災危通報</th></tr></thead>
+        <tbody>
+          <tr><td>QZS-1R</td><td class="num">186</td><td>準天頂軌道</td><td>送る</td></tr>
+          <tr><td>QZS-2</td><td class="num">184</td><td>準天頂軌道</td><td>送る</td></tr>
+          <tr><td>QZS-3</td><td class="num">189</td><td>静止軌道</td><td>送る</td></tr>
+          <tr><td>QZS-4</td><td class="num">185</td><td>準天頂軌道</td><td>送る</td></tr>
+          <tr><td>QZS-6</td><td>L1S なし（L1Sb の PRN 129）</td><td>静止軌道</td><td>資料に記載なし</td></tr>
+          <tr><td>QZS-7</td><td>L1S なし（L1Sb の PRN 139）</td><td>準静止軌道</td><td>運用前（2027 年 2 月下旬開始予定）</td></tr>
+        </tbody>
+      </table></div>
+      <p>L1Sb は SBAS（航空用の補強）向けの別の信号。L1S の PRN は 183〜191 の範囲で割り当てる決まりで、qzss_dcr の作者は実機で PRN 184 と 189 から受信している。</p>
+      <p>静止軌道の QZS-3 は赤道の上空にいるので、日本からは常に南の空に見える。準天頂軌道の 3 機は日本の真上付近を交代で通る。アンテナは<strong>南向きの窓際</strong>に置く。</p>
+    </div>
+    <div class="sub">
+      <h3>MAX-M10S から qzss_dcr まで</h3>
+      <ol>
+        <li><code>--configure-m10 --ubx-port I2C</code> が設定を 1 回送る。QZSS の L1S を受ける設定（<code>CFG-SIGNAL-QZSS_L1S_ENA</code> など）と、受けたメッセージを I2C に出す設定（<code>CFG-MSGOUT-UBX_RXM_SFRBX_I2C</code>）</li>
+        <li>MAX-M10S は受けたメッセージを UBX-RXM-SFRBX で I2C に出す。qzss_dcr は先頭バイトが 5（QZSS）、3 バイト目が 1 のものを使う。3 バイト目は L1S を指すと推定 <span class="tag guess">推測</span></li>
+        <li>データ部の先頭 8 ワードを、ワードごとにバイト順を反転してつなぎ、250 ビットに切り詰める</li>
+        <li>CRC-24Q で検査し、MT43・MT44 だけを azarashi で日本語にする。同じ通報は 300 秒の間、重ねて表示しない</li>
+      </ol>
+      <p>これから作る I2C と TCP の中継プログラムは、バイト列を加工せずに両方向へ流せばよい。L1S が届いているかは qzss_dcr の受信状況表示（最後の L1S から 10 秒で黄、60 秒で赤）で確かめる。</p>
+      <div class="note"><p><strong><code>--configure-m10</code> の設定は RAM にだけ書かれ、電源を切ると消える。</strong>起動のたびに付けるか、<code>--persist</code> で BBR（バックアップ用のメモリ）にも書く。systemd で常時起動にするとき（#11）に決める。</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="next-h">
+    <h2 id="next-h" class="sec-head">このプロジェクトでやること・確かめていないこと</h2>
+    <div class="todo">
+      <div class="sub">
+        <h3>やること</h3>
+        <ul>
+          <li>中継プログラムはバイト列をそのまま流す</li>
+          <li>起動時に毎回 <code>--configure-m10</code> を付けるか、<code>--persist</code> を使う</li>
+          <li>訓練の日に受信を確かめる。最初は 2026-11-26（MT43）と 12-01（MT44）</li>
+          <li>画面に「モニターに書くこと」を表示する</li>
+          <li>独自の予想震度や揺れまでの秒数は計算しない</li>
+          <li>緊急地震速報・J アラートは衛星から、普通の警報・注意報は XML から取り、画面で合わせて出す</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h3>確かめていないこと</h3>
+        <ul>
+          <li>年間・1 日あたりの配信件数</li>
+          <li>気象庁の発表から衛星で届くまでの時間</li>
+          <li>災危通報の根拠になる法律、防災基本計画での扱い</li>
+          <li>公開 XML に緊急地震速報が入っていないこと（長期フィードを見た範囲になかっただけ）</li>
+          <li>L アラートのどの種類が DCX で配信されるか</li>
+          <li>アジア太平洋向けの DCX が始まったか</li>
+          <li>SFRBX の 3 バイト目の意味（実機で確かめる）</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="src-h">
+    <h2 id="src-h" class="sec-head">出典</h2>
+    <div class="sources">
+      <div class="sub"><h3>仕様書・内閣府</h3><ul>
+        <li><a href="https://qzss.go.jp/en/technical/download/pdf/ps-is-qzss/is-qzss-dcr-017.pdf">IS-QZSS-DCR-017</a></li>
+        <li><a href="https://qzss.go.jp/en/technical/download/pdf/ps-is-qzss/is-qzss-dcx-004.pdf">IS-QZSS-DCX-004</a></li>
+        <li><a href="https://qzss.go.jp/en/technical/download/dc-report/users-manual_ver3.pdf">アプリケーションノート 第 3.0 版</a></li>
+        <li><a href="https://qzss.go.jp/technical/download/agree/is-qzss-l1s-001.pdf">IS-QZSS-L1S-001 ドラフト（信号）</a></li>
+        <li><a href="https://qzss.go.jp/overview/services/sv08_dc-report.html">災危通報サービス</a></li>
+        <li><a href="https://qzss.go.jp/en/technical/satellites/index.html">衛星一覧</a></li>
+        <li><a href="https://qzss.go.jp/en/overview/notices/dcx_240401.html">DCX の開始</a></li>
+        <li><a href="https://qzss.go.jp/info/information/rnhmsi0000012l54-att/dcx-priority-delivery.pdf">優先配信について</a></li>
+        <li><a href="https://qzss.go.jp/en/overview/notices/qzs7_261113.html">QZS-7 の準備状況</a></li>
+        <li><a href="https://qzss.go.jp/technical/dod/dc-report/test-data-distribution.html">MT43 の試験配信</a>・<a href="https://qzss.go.jp/technical/dod/dc-report/dcx-test-data-distribution.html">DCX の試験配信</a></li>
+        <li>利用条件：<a href="https://qzss.go.jp/technical/download/is_qzss_dcr_017_agree.html">DCR</a>・<a href="https://qzss.go.jp/technical/download/is_qzss_dcx_004_agree.html">DCX</a></li>
+        <li><a href="https://www.bousai.go.jp/kaigirep/hakusho/r08/honbun/2b_3s_01_02.html">防災白書 令和 8 年版</a></li>
+      </ul></div>
+      <div class="sub"><h3>気象庁・法令</h3><ul>
+        <li><a href="https://xml.kishou.go.jp/">気象庁防災情報 XML</a>・<a href="https://xml.kishou.go.jp/xmlpull.html">PULL 型</a>・<a href="https://xml.kishou.go.jp/qanda.html">Q&amp;A</a></li>
+        <li><a href="https://www.jma.go.jp/jma/kishou/info/ml-23.html">気象業務法 第 23 条</a>・<a href="https://laws.e-gov.go.jp/api/1/lawdata/327CO0000000471">施行令</a></li>
+        <li><a href="https://www.jma.go.jp/jma/kishou/minkan/kyoka.html">予報業務の許可</a>・<a href="https://www.jma.go.jp/jma/kishou/minkan/q_a_m.html">Q&amp;A</a>・<a href="https://www.jma.go.jp/jma/kishou/minkan/minkan_jishin.html">地震動の予報業務</a></li>
+        <li><a href="https://www.jma.go.jp/jma/kishou/know/jishin/eew/katsuyou/receiver.html">緊急地震速報の受信端末</a></li>
+        <li><a href="https://www.jma.go.jp/jma/kishou/info/coment.html">気象庁ホームページの利用規約</a></li>
+        <li><a href="https://www.fdma.go.jp/publication/hakusho/r6/chapter3/section1/68021.html">消防白書（J アラート）</a>・<a href="https://www.soumu.go.jp/soutsu/okinawa/musentuusin/info-saigaipo_po-taru.html">総務省（L アラート）</a></li>
+      </ul></div>
+      <div class="sub"><h3>受信例・ツール</h3><ul>
+        <li><a href="https://github.com/fractional-n/qzss_dcr">qzss_dcr</a></li>
+        <li><a href="https://www.switch-science.com/blogs/magazine/gps-qzss-dcx-report-dcx-receiving">スイッチサイエンス マガジン</a></li>
+        <li><a href="https://x.com/DisasterRept_QZ">内閣府の災危通報 X アカウント</a></li>
+        <li><a href="design.html">設計図</a></li>
+      </ul></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>
