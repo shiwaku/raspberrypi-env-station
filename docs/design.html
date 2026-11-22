@@ -205,7 +205,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
         <text x="670" y="298" font-size="11" class="muted">ダッシュボード・ログ・通知</text>
       </svg>
     </div>
-    <p class="caption">CO2 センサー（SCD40）は MAX-M10S の先に Qwiic ケーブル（100mm）でつなぎ、同じ I2C の線を使う。アドレスが違う（MAX-M10S は 0x42、SCD40 は 0x62）ので、データは混ざらない。SCD40 は env-station が直接読み、MAX-M10S は中継プログラムを通して qzss_dcr が読む。中継プログラムは未実装。</p>
+    <p class="caption">CO2 センサー（SCD40）は MAX-M10S の先に Qwiic ケーブル（100mm）でつなぎ、同じ I2C の線を使う。アドレスが違う（MAX-M10S は 0x42、SCD40 は 0x62）ので、データは混ざらない。SCD40 は env-station が直接読み、MAX-M10S は中継プログラム（gnss-relay）を通して qzss_dcr が読む。</p>
   </section>
 
   <!-- 2. 画面構成 -->
@@ -479,7 +479,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
       <div class="card">
         <h3>災危通報（既存ツール）</h3>
         <p class="mono" style="font-size:13px">qzss_dcr</p>
-        <p>MAX-M10S に L1S を有効にする設定を送り、受信した通報を日本語で表示・記録する。</p>
+        <p>MAX-M10S に L1S を有効にする設定を送り、受信した通報を日本語で表示・記録する。I2C との間は、このリポジトリの <code>gnss-relay</code> が TCP（127.0.0.1:2101）に中継する（実装済み）。</p>
       </div>
       <div class="card">
         <h3>気象庁 XML（未実装）</h3>
@@ -541,7 +541,7 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
     <ol class="steps">
       <li>コワーキングの運営者に、共用 Wi-Fi につなぐ条件（端末の登録、認証方式、ブラウザでのログイン画面の有無、常時接続機器を置いてよいか）を確認する（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/2">#2</a>）。電源・ケーブル・キーボードなど周辺機材の有無も確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/3">#3</a>）。</li>
       <li>デスクトップ付きの Raspberry Pi OS を書き込み、大型モニター・キーボード・マウスをつないで起動する。SSH は鍵の認証だけを許し、以降は PC の Tera Term から作業する。SCD40 を配線して <code>i2cdetect -y 1</code> に <span class="mono">62</span> が出るか確かめ、<code>env-station</code> で計測を始める（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/4">#4</a>）。</li>
-      <li>MAX-M10S モジュールとアンテナを買い（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/5">#5</a>）、Qwiic（I2C）で配線する。I2C と TCP の中継プログラムを作り、qzss_dcr で受信を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/6">#6</a>）。</li>
+      <li>MAX-M10S モジュールとアンテナを買い（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/5">#5</a>）、Qwiic（I2C）で配線する。I2C と TCP の中継プログラム（gnss-relay、実装済み）を動かし、qzss_dcr で受信を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/6">#6</a>）。</li>
       <li>ナウキャストの地図タイルの利用条件を確かめる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/7">#7</a>）。気象庁 XML の取得（jma-feed）を作り、設置場所の地域コードで警報・注意報を絞る（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/8">#8</a>）。</li>
       <li>鉄道（帰宅に使う在来線、出張で使う新幹線）と飛行機（よく使う行き先の出発便）のデータの入手先を調べる（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</li>
       <li>Web ダッシュボードを作り（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/9">#9</a>）、起動時に大型モニターへ全画面で映るようにする（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/10">#10</a>）。</li>

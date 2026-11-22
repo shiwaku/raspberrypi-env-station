@@ -170,14 +170,22 @@ uv run env-dashboard   # http://127.0.0.1:8080/ を Pi の Chromium で開く
 
 デコードと表示は [qzss_dcr](https://github.com/fractional-n/qzss_dcr)（MIT）に任せる。このリポジトリには含めず、別に clone して動かす。
 
-MAX-M10S は I2C でつなぐので、I2C（0x42）から読んだデータを `localhost:2101` の TCP に流す中継プログラムを Pi で動かし、qzss_dcr は TCP 入力で受け取る。qzss_dcr が送る L1S の設定も、同じ中継を通って MAX-M10S に書き込まれる。中継プログラムは未実装。
+MAX-M10S は I2C でつなぐので、I2C（0x42）から読んだデータを `localhost:2101` の TCP に流す中継プログラムを Pi で動かし、qzss_dcr は TCP 入力で受け取る。qzss_dcr が送る L1S の設定も、同じ中継を通って MAX-M10S に書き込まれる。中継プログラムは `gnss-relay` で、バイト列を加工せずに両方向へ流す。
 
 ```sh
+# 1. 中継プログラム（127.0.0.1:2101 で待ち受ける）
+uv run gnss-relay          # 先に uv sync --extra pi をしておく
+
+# 2. 別の端末で qzss_dcr（L1S を有効にする設定も送る）
 git clone https://github.com/fractional-n/qzss_dcr.git
 cd qzss_dcr
-# 中継プログラムを動かした状態で（L1S を有効にする設定も送る）
-python3 qzss_dcr.py --tcp localhost:2101 --configure-m10 --ubx-port I2C
+python3 -m venv .venv && .venv/bin/pip install 'azarashi>=0.17.1,<0.18' pyserial
+.venv/bin/python qzss_dcr.py --tcp localhost:2101 --configure-m10 --ubx-port I2C
 ```
+
+- `gnss-relay` は受信機を 0.05 秒ごとに読む。受信機は 1.5 秒読まれないと出力を止めるので、qzss_dcr がつながっていなくても読み続ける
+- I2C の読み書きに失敗しても（配線の抜き差しなど）止まらず、qzss_dcr とつないだままやり直す
+- qzss_dcr の作者が用意した記録データ（`samples/demo_l1s.ubx`・`demo_dcx.ubx`）を偽の受信機から流し、中継を通して MT43・MT44 が日本語になること、`--configure-m10` の設定がそのまま受信機側へ届くことを確かめた。実機ではまだ動かしていない
 
 `--configure-m10` の設定は MAX-M10S の RAM にだけ書かれ、電源を切ると消える。起動のたびに付けるか、`--persist` で BBR（バックアップ用のメモリ）にも書く。
 

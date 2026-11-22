@@ -348,7 +348,7 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
         <li>データ部の先頭 8 ワードを、ワードごとにバイト順を反転してつなぎ、250 ビットに切り詰める</li>
         <li>CRC-24Q で検査し、MT43・MT44 だけを azarashi で日本語にする。同じ通報は 300 秒の間、重ねて表示しない</li>
       </ol>
-      <p>これから作る I2C と TCP の中継プログラムは、バイト列を加工せずに両方向へ流せばよい。L1S が届いているかは qzss_dcr の受信状況表示（最後の L1S から 10 秒で黄、60 秒で赤）で確かめる。</p>
+      <p>I2C と TCP の中継プログラム（<code>gnss-relay</code>）は、バイト列を加工せずに両方向へ流す。L1S が届いているかは qzss_dcr の受信状況表示（最後の L1S から 10 秒で黄、60 秒で赤）で確かめる。</p>
       <div class="note"><p><strong><code>--configure-m10</code> の設定は RAM にだけ書かれ、電源を切ると消える。</strong>起動のたびに付けるか、<code>--persist</code> で BBR（バックアップ用のメモリ）にも書く。systemd で常時起動にするとき（#11）に決める。</p></div>
     </div>
   </section>
@@ -359,7 +359,7 @@ td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; whit
       <div class="sub">
         <h3>やること</h3>
         <ul>
-          <li>中継プログラムはバイト列をそのまま流す</li>
+          <li>中継プログラム（<code>gnss-relay</code>）はバイト列をそのまま流す（実装済み）</li>
           <li>起動時に毎回 <code>--configure-m10</code> を付けるか、<code>--persist</code> を使う</li>
           <li>訓練の日に受信を確かめる。最初は 2026-11-26（MT43）と 12-01（MT44）</li>
           <li>画面に「モニターに書くこと」を表示する</li>
