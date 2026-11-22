@@ -18,3 +18,51 @@ body {
 	overflow: hidden; /* 大型モニターに出しっぱなしにするのでスクロールさせない */
 	cursor: none;
 }
+
+/* 設置場所の印。キーカラーの点に、ゆっくり広がる波紋を付ける */
+.station-marker {
+	width: 28px;
+	height: 28px;
+	border-radius: 9999px;
+	background: var(--color-key-900);
+	border: 5px solid var(--color-white);
+	box-shadow: var(--shadow-2);
+}
+.station-marker::after {
+	content: '';
+	position: absolute;
+	inset: -5px;
+	border-radius: inherit;
+	background: var(--color-key-900);
+	opacity: 0;
+	animation: station-pulse 2.4s ease-out infinite;
+	z-index: -1;
+}
+@keyframes station-pulse {
+	from {
+		transform: scale(1);
+		opacity: 0.4;
+	}
+	to {
+		transform: scale(3.5);
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.station-marker::after {
+		animation: none;
+	}
+}
+
+/* 地図の出典（左下）。DADS の文字色と白地に合わせる */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl.maplibregl-ctrl-attrib {
+	margin: 0 0 12px 12px !important;
+	padding: 2px 8px;
+	border-radius: var(--radius-6);
+	background: rgb(255 255 255 / 0.9);
+	font-size: 12px;
+	color: var(--color-solid-gray-700);
+}
+.maplibregl-ctrl-attrib a {
+	color: inherit;
+}

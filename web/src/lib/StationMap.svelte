@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { Map as MapLibreMap, setWorkerUrl, type StyleSpecification } from 'maplibre-gl';
+	import {
+		AttributionControl,
+		Map as MapLibreMap,
+		Marker,
+		setWorkerUrl,
+		type StyleSpecification
+	} from 'maplibre-gl';
 	// MapLibre 6 は Web Worker を別ファイルで読む。バンドル後も届くよう Vite に worker として出させる
 	import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 	import { onMount } from 'svelte';
@@ -10,8 +16,16 @@
 		station,
 		basemaps,
 		intervalS,
-		scale = 1
-	}: { station: Station | null; basemaps: Basemap[]; intervalS: number; scale?: number } = $props();
+		scale = 1,
+		padRight = 0
+	}: {
+		station: Station | null;
+		basemaps: Basemap[];
+		intervalS: number;
+		scale?: number;
+		/** 右側に重ねるパネルの幅。地点がパネルに隠れないよう、残りの範囲の中央に置く */
+		padRight?: number;
+	} = $props();
 
 	let container: HTMLDivElement;
 	let current = $state(0);
@@ -37,26 +51,15 @@
 				type: 'raster',
 				source: id,
 				// 非表示の地図も透明のまま読み込んでおき、切り替えた瞬間に黒くならないようにする
-				paint: { 'raster-opacity': i === 0 ? 1 : 0, 'raster-opacity-transition': { duration: 2000 } }
-			});
-		});
-		if (station) {
-			sources.station = {
-				type: 'geojson',
-				data: { type: 'Point', coordinates: center() }
-			};
-			layers.push({
-				id: 'station',
-				type: 'circle',
-				source: 'station',
 				paint: {
-					'circle-radius': 9,
-					'circle-color': '#0017c1', // DADS key-900
-					'circle-stroke-width': 3,
-					'circle-stroke-color': '#ffffff'
+					'raster-opacity': i === 0 ? 1 : 0,
+					'raster-opacity-transition': { duration: 2000 },
+					// 地図は背景なので色を少し抑え、地点の印とパネルを目立たせる
+					'raster-saturation': id === 'seamlessphoto' ? -0.2 : -0.4,
+					'raster-contrast': -0.1
 				}
 			});
-		}
+		});
 		return { version: 8, sources, layers };
 	}
 
@@ -72,12 +75,22 @@
 			container,
 			style: buildStyle(),
 			center: center(),
-			zoom: station ? 10 : 4.5,
+			zoom: station ? 12 : 4.5,
 			interactive: false, // 大型モニターに映すだけで、操作はしない
-			attributionControl: { compact: false },
+			attributionControl: false,
 			// 画面全体を CSS で拡大するので、その分だけ細かく描いてぼやけないようにする
 			pixelRatio: window.devicePixelRatio * scale
 		}));
+		map.setPadding({ top: 0, bottom: 0, left: 0, right: padRight });
+		// 右側はパネルで隠れるので、出典は左下に出す
+		map.addControl(new AttributionControl({ compact: false }), 'bottom-left');
+
+		// 地点の印は DOM で描き、CSS で波紋を付ける（app.css の .station-marker）
+		if (station) {
+			const el = document.createElement('div');
+			el.className = 'station-marker';
+			new Marker({ element: el }).setLngLat(center()).addTo(map);
+		}
 
 		// 背景地図が 2 つ以上なら、決めた間隔で順に切り替える
 		const timer =
@@ -97,11 +110,15 @@
 	});
 </script>
 
-<div class="relative h-full w-full overflow-hidden rounded-8 border border-solid-gray-200">
+<div class="absolute inset-0">
 	<div bind:this={container} class="h-full w-full"></div>
-	<div class="absolute top-2 left-2 rounded-6 bg-white/90 px-3 py-1 shadow-1">
+	<div
+		class="absolute top-3 left-3 flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-2"
+	>
+		<span class="size-2.5 rounded-full bg-key-900"></span>
 		<span class="text-std-16B-170">{station?.name ?? '設置場所が未設定'}</span>
-		<span class="ml-2 text-dns-14N-130 text-solid-gray-600">
+		<span class="h-4 w-px bg-solid-gray-200"></span>
+		<span class="text-dns-14N-130 text-solid-gray-600">
 			{BASEMAPS[basemaps[current] ?? 'pale'].label}
 		</span>
 	</div>
