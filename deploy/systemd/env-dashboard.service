@@ -1,0 +1,15 @@
+# 大型モニター用ダッシュボードの Web サーバー（127.0.0.1:8080）
+# 導入は deploy/install.sh。ログは journalctl --user -u env-dashboard
+
+[Unit]
+Description=env-dashboard: ダッシュボードを配信する
+After=network.target
+
+[Service]
+WorkingDirectory=%h/raspberrypi-env-station
+ExecStart=%h/raspberrypi-env-station/.venv/bin/env-dashboard --config config.toml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

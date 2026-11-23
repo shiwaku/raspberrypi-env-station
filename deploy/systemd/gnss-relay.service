@@ -1,0 +1,14 @@
+# MAX-M10S の I2C（0x42）と TCP（127.0.0.1:2101）をつなぐ
+# 導入は deploy/install.sh。ログは journalctl --user -u gnss-relay
+
+[Unit]
+Description=gnss-relay: MAX-M10S の I2C と TCP をつなぐ
+
+[Service]
+WorkingDirectory=%h/raspberrypi-env-station
+ExecStart=%h/raspberrypi-env-station/.venv/bin/gnss-relay
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

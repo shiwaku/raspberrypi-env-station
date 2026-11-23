@@ -1,0 +1,20 @@
+# みちびき災危通報を受信して記録する（qzss_dcr を ~/qzss_dcr に clone し、.venv を作っておく）
+# gnss-relay を通して MAX-M10S を読む。--configure-m10 の設定は受信機の RAM にしか残らないので、
+# 起動のたびに送る。通報は data/qzss_dcr/日付.jsonl に 1 行ずつ追記する
+# 導入は deploy/install.sh。ログは journalctl --user -u qzss-dcr
+
+[Unit]
+Description=qzss_dcr: みちびき災危通報を受信する
+Requires=gnss-relay.service
+After=gnss-relay.service
+
+[Service]
+WorkingDirectory=%h/qzss_dcr
+Environment=PYTHONUNBUFFERED=1
+# systemd では % を %% と書く（qzss_dcr には %Y%m%d が渡る）
+ExecStart=%h/qzss_dcr/.venv/bin/python qzss_dcr.py --tcp localhost:2101 --configure-m10 --ubx-port I2C --jsonl %h/raspberrypi-env-station/data/qzss_dcr/%%Y%%m%%d.jsonl
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,15 @@
+# CO2・温度・湿度を定期的に計測して SQLite に記録する（systemd のユーザーサービス）
+# 導入は deploy/install.sh。ログは journalctl --user -u env-station
+
+[Unit]
+Description=env-station: SCD40 の計測を SQLite に記録する
+After=network.target
+
+[Service]
+WorkingDirectory=%h/raspberrypi-env-station
+ExecStart=%h/raspberrypi-env-station/.venv/bin/env-station --config config.toml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
