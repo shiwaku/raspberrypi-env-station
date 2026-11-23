@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from raspberrypi_env_station.transit import TransitConfig
+
 
 @dataclass(frozen=True)
 class SensorConfig:
@@ -49,6 +51,7 @@ class Config:
     sensors: list[SensorConfig]
     station: Station | None = None
     dashboard: DashboardConfig = field(default_factory=DashboardConfig)
+    transit: TransitConfig = field(default_factory=TransitConfig)
 
 
 _KNOWN_TYPES = {"scd4x"}
@@ -98,6 +101,36 @@ def parse_dashboard(data: dict[str, Any] | None) -> DashboardConfig:
     )
 
 
+AIRLINES = ("JAL", "ANA")  # ODPT で運航情報が取れる航空会社
+
+
+def parse_transit(data: dict[str, Any] | None) -> TransitConfig:
+    if not data:
+        return TransitConfig()
+    routes = []
+    for route in data.get("flight_routes", []):
+        if len(route) != 2 or not all(isinstance(c, str) and len(c) == 3 for c in route):
+            raise ValueError(f"flight_routes は [出発, 到着] の空港コード（3 文字）: {route}")
+        routes.append((route[0].upper(), route[1].upper()))
+    airlines = tuple(data.get("airlines", AIRLINES))
+    if unknown := [a for a in airlines if a not in AIRLINES]:
+        raise ValueError(f"未対応の航空会社: {unknown}（{list(AIRLINES)} から選ぶ）")
+    railways = tuple(data.get("railways", []))
+    if bad := [r for r in railways if not str(r).startswith("odpt.Railway:")]:
+        raise ValueError(f"railways は odpt.Railway: で始まる ID にしてください: {bad}")
+    interval = float(data.get("interval_s", 300))
+    if interval < 60:
+        raise ValueError("transit.interval_s は 60 秒以上にしてください（ODPT に負荷をかけない）")
+    return TransitConfig(
+        odpt_token=str(data.get("odpt_token", "")),
+        interval_s=interval,
+        flight_routes=tuple(routes),
+        airlines=airlines,
+        railways=railways,
+        contact=str(data.get("contact", "")),
+    )
+
+
 def parse_config(data: dict[str, Any]) -> Config:
     interval = float(data.get("interval_s", 60))
     if interval <= 0:
@@ -116,6 +149,7 @@ def parse_config(data: dict[str, Any]) -> Config:
         sensors=sensors,
         station=parse_station(data.get("station")),
         dashboard=parse_dashboard(data.get("dashboard")),
+        transit=parse_transit(data.get("transit")),
     )
 
 

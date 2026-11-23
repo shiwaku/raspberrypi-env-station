@@ -4,9 +4,11 @@
 		fetchConfig,
 		fetchLatest,
 		fetchSeries,
+		fetchTransit,
 		type DashboardConfig,
 		type Latest,
-		type Point
+		type Point,
+		type Transit
 	} from '#lib/api.ts';
 	import {
 		CO2_STATUS,
@@ -20,10 +22,14 @@
 	import { buildNotices } from '#lib/notices.ts';
 	import OfficeMap from '#lib/OfficeMap.svelte';
 	import Ticker from '#lib/Ticker.svelte';
+	import { transitNotices } from '#lib/transit.ts';
+	import TransitBoard from '#lib/TransitBoard.svelte';
 
 	const LATEST_INTERVAL_MS = 30_000;
 	const SERIES_INTERVAL_MS = 5 * 60_000;
 	const STALE_MS = 5 * 60_000; // これより古い値しか無ければ「受信なし」と出す
+	const TRANSIT_INTERVAL_MS = 60_000; // サーバー側が ODPT から 5 分ごとに取り直す
+	const PAGE_MS = 20_000; // 表示板のページを切り替える間隔
 	// 画面は 1920×1080 で組み、ウィンドウに合わせて拡大・縮小する
 	const W = 1920;
 	const H = 1080;
@@ -36,12 +42,31 @@
 	let innerHeight = $state(H);
 	let scale = $derived(Math.min(innerWidth / W, innerHeight / H));
 	let error = $state<string | null>(null);
+	let transit = $state<Transit>({ enabled: false });
+	// ?page=transit で運行状況のページから始める（表示の確認用）
+	let pageIndex = $state(new URLSearchParams(location.search).get('page') === 'transit' ? 1 : 0);
 
 	let stale = $derived(!latest?.ts || now - Date.parse(latest.ts) > STALE_MS);
 	let co2 = $derived(stale ? null : (latest?.co2_ppm ?? null));
 	let temp = $derived(stale ? null : (latest?.temperature_c ?? null));
 	let humidity = $derived(stale ? null : (latest?.humidity_pct ?? null));
-	let notices = $derived(buildNotices(latest, stale, error));
+	// 表示板のページ：室内環境と、設定があれば運行状況
+	let pages = $derived<('env' | 'transit')[]>(transit.enabled ? ['env', 'transit'] : ['env']);
+	let page = $derived(pages[pageIndex % pages.length]!);
+	let notices = $derived([
+		...buildNotices(latest, stale, error),
+		...(transit.enabled
+			? transitNotices(transit.flights, transit.trains, transit.airports, transit.routes)
+			: [])
+	]);
+
+	async function refreshTransit() {
+		try {
+			transit = await fetchTransit();
+		} catch (e) {
+			error = String(e);
+		}
+	}
 
 	async function refreshLatest() {
 		try {
@@ -66,9 +91,12 @@
 			.catch((e) => (error = String(e)));
 		refreshLatest();
 		refreshSeries();
+		refreshTransit();
 		const timers = [
 			setInterval(refreshLatest, LATEST_INTERVAL_MS),
 			setInterval(refreshSeries, SERIES_INTERVAL_MS),
+			setInterval(refreshTransit, TRANSIT_INTERVAL_MS),
+			setInterval(() => (pageIndex += 1), PAGE_MS),
 			setInterval(() => (now = Date.now()), 1000)
 		];
 		return () => timers.forEach(clearInterval);
@@ -147,16 +175,39 @@
 	>
 		<header class="flex items-center justify-between border-b-[3px] border-rule bg-plate px-9 py-3.5">
 			<h1 class="m-0 text-[40px] font-normal tracking-[0.12em]">
-				{config?.station?.name ?? ''}{config?.station?.name ? '　' : ''}室内環境<small
-					class="ml-[18px] text-[24px] tracking-[0.1em] text-led-dim">INDOOR</small
-				>
+				{#if page === 'env'}
+					{config?.station?.name ?? ''}{config?.station?.name ? '　' : ''}室内環境<small
+						class="ml-[18px] text-[24px] tracking-[0.1em] text-led-dim">INDOOR</small
+					>
+				{:else}
+					運行状況<small class="ml-[18px] text-[24px] tracking-[0.1em] text-led-dim">TRANSIT</small>
+				{/if}
 			</h1>
 			<div class="flex items-baseline gap-[22px]">
+				{#if pages.length > 1}
+					<!-- いまどのページか（発車標の「1/2」のような印） -->
+					<span class="flex gap-2 self-center" aria-hidden="true">
+						{#each pages as p (p)}
+							<span class="size-3.5 {p === page ? 'bg-led-amber' : 'bg-off'}"></span>
+						{/each}
+					</span>
+				{/if}
 				<span class="text-[32px] text-led-dim">{date}</span>
 				<time class="text-[64px] leading-none tracking-[0.04em] text-led-amber">{time}</time>
 			</div>
 		</header>
 
+		{#if page === 'transit' && transit.enabled}
+			<TransitBoard
+				flights={transit.flights}
+				trains={transit.trains}
+				routes={transit.routes}
+				airports={transit.airports}
+				sources={transit.sources}
+				contact={transit.contact}
+				error={transit.error}
+			/>
+		{:else}
 		<div class="grid min-h-0 flex-1 grid-cols-[1fr_820px]">
 			<div class="flex flex-col border-r-[3px] border-rule">
 				<div class="{GRID} bg-[#1b1b1b] py-2.5 text-[24px] tracking-[0.2em] text-[#c8c8c2]">
@@ -202,6 +253,7 @@
 				</div>
 			</div>
 		</div>
+		{/if}
 
 		<Ticker {notices} />
 	</section>

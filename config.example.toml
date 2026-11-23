@@ -29,6 +29,22 @@ label = "TOKYO"
 latitude = 35.6812   # 仮（東京駅）。東京オフィスの位置に直す
 longitude = 139.7671
 
+# 運行状況（飛行機・東京の地下鉄）。公共交通オープンデータセンター（ODPT）から取る
+# 書かなければ、ダッシュボードの表示板は室内環境だけになる
+[transit]
+# ODPT の開発者サイトで発行した api.odpt.org 用のトークン（チャレンジ用のトークンは使えない）
+# config.toml はリポジトリに入らないので、ここに書いてよい
+odpt_token = ""
+# 出発空港と到着空港（IATA コード）。JAL・ANA の便を出す（AIRDO は ANA の共同運航便として出る）
+flight_routes = [["CTS", "HND"], ["HND", "CTS"]]
+# 東京の地下鉄の路線（東京メトロはトークンが必要、都営は不要）。ID の一覧は README を参照
+railways = [
+  "odpt.Railway:TokyoMetro.Marunouchi",
+  "odpt.Railway:Toei.Asakusa",
+]
+# 画面に出す問い合わせ先（ODPT の規約で必要）
+contact = ""
+
 # 秋月 AE-SCD40-BO（CO2・温度・湿度）
 [[sensors]]
 type = "scd4x"
