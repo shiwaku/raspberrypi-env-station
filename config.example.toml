@@ -26,8 +26,8 @@ longitude = 141.3545
 [[dashboard.offices]]
 name = "東京"
 label = "TOKYO"
-latitude = 35.6812   # 仮（東京駅）。東京オフィスの位置に直す
-longitude = 139.7671
+latitude = 35.6996   # 仮（御茶ノ水駅）。東京オフィスの位置に直す
+longitude = 139.7650
 
 # 運行状況（飛行機・東京の地下鉄）。公共交通オープンデータセンター（ODPT）から取る
 # 書かなければ、ダッシュボードの表示板は室内環境だけになる
@@ -38,9 +38,11 @@ odpt_token = ""
 # 出発空港と到着空港（IATA コード）。JAL・ANA の便を出す（AIRDO は ANA の共同運航便として出る）
 flight_routes = [["CTS", "HND"], ["HND", "CTS"]]
 # 東京の地下鉄の路線（東京メトロはトークンが必要、都営は不要）。ID の一覧は README を参照
+# 御茶ノ水駅に関係する路線：丸ノ内線（御茶ノ水）と千代田線（新御茶ノ水）
+# JR の中央線・総武線は ODPT で社内表示に使えるデータがないので出せない
 railways = [
   "odpt.Railway:TokyoMetro.Marunouchi",
-  "odpt.Railway:Toei.Asakusa",
+  "odpt.Railway:TokyoMetro.Chiyoda",
 ]
 # 画面に出す問い合わせ先（ODPT の規約で必要）
 contact = ""
