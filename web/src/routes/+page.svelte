@@ -5,10 +5,12 @@
 		fetchLatest,
 		fetchSeries,
 		fetchTransit,
+		fetchWeather,
 		type DashboardConfig,
 		type Latest,
 		type Point,
-		type Transit
+		type Transit,
+		type WeatherResponse
 	} from '#lib/api.ts';
 	import {
 		CO2_STATUS,
@@ -24,12 +26,14 @@
 	import Ticker from '#lib/Ticker.svelte';
 	import { transitNotices } from '#lib/transit.ts';
 	import TransitBoard from '#lib/TransitBoard.svelte';
+	import { weatherNotices } from '#lib/weather.ts';
 
 	const LATEST_INTERVAL_MS = 30_000;
 	const SERIES_INTERVAL_MS = 5 * 60_000;
 	const STALE_MS = 5 * 60_000; // これより古い値しか無ければ「受信なし」と出す
 	const TRANSIT_INTERVAL_MS = 60_000; // サーバー側が ODPT から 5 分ごとに取り直す
 	const PAGE_MS = 20_000; // 表示板のページを切り替える間隔
+	const WEATHER_INTERVAL_MS = 2 * 60_000; // サーバー側が気象庁のフィードを 2 分ごとに見る
 	// 画面は 1920×1080 で組み、ウィンドウに合わせて拡大・縮小する
 	const W = 1920;
 	const H = 1080;
@@ -43,6 +47,7 @@
 	let scale = $derived(Math.min(innerWidth / W, innerHeight / H));
 	let error = $state<string | null>(null);
 	let transit = $state<Transit>({ enabled: false });
+	let weather = $state<WeatherResponse>({ offices: {}, fetched_at: null, error: null });
 	// ?page=transit で運行状況のページから始める（表示の確認用）
 	let pageIndex = $state(new URLSearchParams(location.search).get('page') === 'transit' ? 1 : 0);
 
@@ -54,11 +59,20 @@
 	let pages = $derived<('env' | 'transit')[]>(transit.enabled ? ['env', 'transit'] : ['env']);
 	let page = $derived(pages[pageIndex % pages.length]!);
 	let notices = $derived([
+		...weatherNotices(weather.offices),
 		...buildNotices(latest, stale, error),
 		...(transit.enabled
 			? transitNotices(transit.flights, transit.trains, transit.airports, transit.routes)
 			: [])
 	]);
+
+	async function refreshWeather() {
+		try {
+			weather = await fetchWeather();
+		} catch (e) {
+			error = String(e);
+		}
+	}
 
 	async function refreshTransit() {
 		try {
@@ -92,7 +106,9 @@
 		refreshLatest();
 		refreshSeries();
 		refreshTransit();
+		refreshWeather();
 		const timers = [
+			setInterval(refreshWeather, WEATHER_INTERVAL_MS),
 			setInterval(refreshLatest, LATEST_INTERVAL_MS),
 			setInterval(refreshSeries, SERIES_INTERVAL_MS),
 			setInterval(refreshTransit, TRANSIT_INTERVAL_MS),
@@ -165,7 +181,7 @@
 	<section class="absolute inset-x-0 top-0 grid h-[500px] gap-1.5 bg-black"
 		style:grid-template-columns="repeat({Math.max(config?.offices.length ?? 1, 1)}, 1fr)">
 		{#each config?.offices ?? [] as office (office.name)}
-			<OfficeMap {office} {scale} />
+			<OfficeMap {office} {scale} weather={weather.offices[office.name] ?? null} />
 		{/each}
 	</section>
 
