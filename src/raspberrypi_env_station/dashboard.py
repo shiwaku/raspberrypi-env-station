@@ -19,6 +19,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 from raspberrypi_env_station.config import Config, load_config
+from raspberrypi_env_station.transit import AIRPORTS, TransitCache, sources
 
 log = logging.getLogger("raspberrypi_env_station.dashboard")
 
@@ -108,9 +109,30 @@ def series(
     return downsample(rows, MAX_POINTS)
 
 
+def transit_body(config: Config, cache: TransitCache | None) -> dict[str, Any]:
+    """運行状況。設定が無ければ enabled: false。ODPT の規約で画面に出す出典・問い合わせ先も返す。"""
+    tc = config.transit
+    if cache is None or not tc.enabled:
+        return {"enabled": False}
+    snap = cache.snapshot()
+    fetched = datetime.fromtimestamp(snap.fetched_at, UTC).isoformat() if snap.fetched_at else None
+    return {
+        "enabled": True,
+        "flights": snap.flights,
+        "trains": snap.trains,
+        "fetched_at": fetched,
+        "error": snap.error,
+        "sources": sources(tc),
+        "contact": tc.contact,
+        "airports": AIRPORTS,
+        "routes": [list(r) for r in tc.flight_routes],
+    }
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     config: Config
     web_dir: Path
+    transit: TransitCache | None = None
 
     def do_GET(self) -> None:
         url = urlsplit(self.path)
@@ -128,6 +150,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     body: Any = {"station": st, "offices": offices(self.config, st)}
                 case "/api/latest":
                     body = latest(conn)
+                case "/api/transit":
+                    body = transit_body(self.config, self.transit)
                 case "/api/series":
                     metric = query.get("metric", [""])[0]
                     if metric not in METRICS:
@@ -178,8 +202,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
         log.debug(format, *args)
 
 
-def make_server(config: Config, web_dir: Path, host: str, port: int) -> ThreadingHTTPServer:
-    handler = type("Handler", (DashboardHandler,), {"config": config, "web_dir": web_dir})
+def make_server(
+    config: Config,
+    web_dir: Path,
+    host: str,
+    port: int,
+    transit: TransitCache | None = None,
+) -> ThreadingHTTPServer:
+    attrs = {"config": config, "web_dir": web_dir, "transit": transit}
+    handler = type("Handler", (DashboardHandler,), attrs)
     return ThreadingHTTPServer((host, port), handler)
 
 
@@ -199,13 +230,19 @@ def main() -> None:
     config = load_config(args.config)
     host = args.host or config.dashboard.host
     port = args.port or config.dashboard.port
-    server = make_server(config, args.web_dir, host, port)
+    transit = None
+    if config.transit.enabled:
+        transit = TransitCache(config.transit)
+        transit.start()  # interval_s ごとに ODPT から取り直す
+    server = make_server(config, args.web_dir, host, port, transit)
     log.info("http://%s:%d/ で配信中（Ctrl+C で終了）", host, port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
+        if transit is not None:
+            transit.stop()
         server.server_close()
 
 
