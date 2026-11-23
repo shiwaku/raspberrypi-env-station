@@ -4,8 +4,9 @@ database = "data/readings.sqlite"
 interval_s = 60  # 計測間隔（秒）。SCD40 は 5 秒ごとに値が更新される
 
 # 設置場所（固定）。地理院地図などで調べた緯度経度を WGS84 の十進で書く
+# name はダッシュボードの表示板の見出しになる（「札幌オフィス　室内環境」）
 [station]
-name = "オフィス"
+name = "札幌オフィス"
 latitude = 43.0618
 longitude = 141.3545
 
@@ -13,10 +14,20 @@ longitude = 141.3545
 [dashboard]
 host = "127.0.0.1"  # Pi 自身の画面からだけ開く。共用 Wi-Fi には公開しない
 port = 8080
-# 背景地図（地理院タイル）: "pale"（淡色地図）・"std"（標準地図）・"seamlessphoto"（シームレス空中写真）
-# 2 つ以上並べると basemap_interval_s ごとに順に切り替える
-basemaps = ["pale"]
-basemap_interval_s = 600
+
+# 画面の上半分に並べる拠点の地図（2 つまで）。書かなければ [station] を 1 つだけ出す
+# zoom は地図の縮尺（既定 12。大きいほど詳しい。地理院地図のズームより 1 小さい値になる）
+[[dashboard.offices]]
+name = "札幌"
+label = "SAPPORO"
+latitude = 43.0618
+longitude = 141.3545
+
+[[dashboard.offices]]
+name = "東京"
+label = "TOKYO"
+latitude = 35.6812   # 仮（東京駅）。東京オフィスの位置に直す
+longitude = 139.7671
 
 # 秋月 AE-SCD40-BO（CO2・温度・湿度）
 [[sensors]]

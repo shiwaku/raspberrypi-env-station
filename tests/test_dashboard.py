@@ -30,7 +30,12 @@ def server(tmp_path):
         {
             "database": str(db),
             "station": {"name": "オフィス", "latitude": 43.06, "longitude": 141.35},
-            "dashboard": {"basemaps": ["pale", "seamlessphoto"], "basemap_interval_s": 300},
+            "dashboard": {
+                "offices": [
+                    {"name": "札幌", "label": "SAPPORO", "latitude": 43.06, "longitude": 141.35},
+                    {"name": "東京", "latitude": 35.68, "longitude": 139.77, "zoom": 11},
+                ]
+            },
         }
     )
     srv = make_server(config, web, "127.0.0.1", 0)
@@ -52,8 +57,10 @@ def get_json(url):
 def test_config(server):
     body = get_json(f"{server}/api/config")
     assert body["station"] == {"name": "オフィス", "latitude": 43.06, "longitude": 141.35}
-    assert body["basemaps"] == ["pale", "seamlessphoto"]
-    assert body["basemap_interval_s"] == 300
+    assert body["offices"] == [
+        {"name": "札幌", "label": "SAPPORO", "latitude": 43.06, "longitude": 141.35, "zoom": 12},
+        {"name": "東京", "label": "", "latitude": 35.68, "longitude": 139.77, "zoom": 11},
+    ]
 
 
 def test_latest_per_metric(server):
@@ -94,7 +101,7 @@ def test_missing_database_returns_empty(tmp_path):
         base = f"http://127.0.0.1:{srv.server_address[1]}"
         assert get_json(f"{base}/api/latest")["co2_ppm"] is None
         assert get_json(f"{base}/api/series?metric=co2_ppm")["points"] == []
-        assert get_json(f"{base}/api/config")["station"] is None
+        assert get_json(f"{base}/api/config") == {"station": None, "offices": []}
     finally:
         srv.shutdown()
         srv.server_close()
@@ -106,6 +113,33 @@ def test_downsample_averages_chunks():
     assert downsample(points, 20) == points
 
 
-def test_parse_dashboard_rejects_unknown_basemap():
+def test_offices_default_to_station(tmp_path):
+    config = parse_config(
+        {
+            "database": str(tmp_path / "none.sqlite"),
+            "station": {"name": "オフィス", "latitude": 43.06, "longitude": 141.35},
+        }
+    )
+    srv = make_server(config, tmp_path, "127.0.0.1", 0)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    try:
+        body = get_json(f"http://127.0.0.1:{srv.server_address[1]}/api/config")
+        assert body["offices"] == [
+            {"name": "オフィス", "latitude": 43.06, "longitude": 141.35, "label": "", "zoom": 12}
+        ]
+    finally:
+        srv.shutdown()
+        srv.server_close()
+
+
+@pytest.mark.parametrize(
+    "offices",
+    [
+        [{"name": "札幌", "latitude": 143.06, "longitude": 141.35}],  # 緯度が範囲外
+        [{"name": "札幌", "latitude": 43.06, "longitude": 141.35, "zoom": 25}],
+        [{"name": n, "latitude": 35.0, "longitude": 139.0} for n in "ABC"],  # 3 つ以上
+    ],
+)
+def test_parse_dashboard_rejects_bad_offices(offices):
     with pytest.raises(ValueError):
-        parse_config({"dashboard": {"basemaps": ["satellite"]}})
+        parse_config({"dashboard": {"offices": offices}})

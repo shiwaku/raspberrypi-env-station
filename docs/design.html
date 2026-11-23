@@ -212,46 +212,50 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
   <section>
     <div class="sec-head"><h2>モニターの画面構成</h2><span class="tag">60 インチ以上・1920×1080・3〜5m から読む</span></div>
     <div class="figure">
-      <svg viewBox="0 0 800 450" role="img" aria-label="大型モニターの画面構成。左に地図と警報一覧、右に CO2 の現在値とグラフ、鉄道の運行状況、飛行機の出発便">
-        <rect x="1" y="1" width="798" height="448" rx="10" class="box"/>
-        <!-- 地図 -->
-        <rect x="16" y="16" width="470" height="300" rx="6" class="sky"/>
-        <text x="32" y="42" font-size="14" font-weight="700">地図</text>
-        <text x="32" y="62" font-size="12" class="muted">地理院タイル（淡色・標準・空中写真）に雨雲と設置場所</text>
-        <circle cx="250" cy="170" r="7" class="acc"/>
-        <ellipse cx="320" cy="140" rx="70" ry="38" fill="var(--wire-blue)" fill-opacity=".25"/>
-        <ellipse cx="350" cy="150" rx="34" ry="18" fill="var(--wire-blue)" fill-opacity=".35"/>
-        <text x="32" y="300" font-size="11" class="muted">出典表示（気象庁・地理院タイル）</text>
-        <!-- 警報 -->
-        <rect x="16" y="328" width="470" height="106" rx="6" class="box-warn"/>
-        <text x="32" y="354" font-size="14" font-weight="700">警報・注意報・災危通報</text>
-        <text x="32" y="378" font-size="12" class="muted">気象庁 XML（設置場所の地域）</text>
-        <text x="32" y="398" font-size="12" class="muted">災危通報（インターネットが止まっても届く）</text>
-        <!-- CO2 -->
-        <rect x="502" y="16" width="282" height="120" rx="6" class="box-acc"/>
-        <text x="518" y="40" font-size="12" class="muted">CO2</text>
-        <text x="518" y="92" font-size="44" font-weight="700">612</text>
-        <text x="618" y="92" font-size="14" class="muted">ppm</text>
-        <text x="518" y="122" font-size="12" class="muted">22.4 ℃ ・ 41.8 %</text>
-        <!-- グラフ -->
-        <rect x="502" y="146" width="282" height="100" rx="6" class="box"/>
-        <text x="518" y="168" font-size="12" class="muted">直近 24 時間の推移</text>
-        <path d="M518 228 L560 220 L600 206 L640 214 L680 190 L720 198 L766 184" class="flow"/>
-        <!-- 鉄道 -->
-        <rect x="502" y="256" width="282" height="86" rx="6" class="box"/>
-        <text x="518" y="278" font-size="12" class="muted">鉄道（帰宅の在来線・新幹線）</text>
-        <rect x="518" y="288" width="250" height="20" rx="3" class="box-acc"/>
-        <text x="526" y="303" font-size="11">A 線　平常運転</text>
-        <rect x="518" y="314" width="250" height="20" rx="3" class="box-warn"/>
-        <text x="526" y="329" font-size="11">○○新幹線　遅延（10 分）</text>
-        <!-- 飛行機 -->
-        <rect x="502" y="352" width="282" height="82" rx="6" class="box"/>
-        <text x="518" y="374" font-size="12" class="muted">飛行機（よく使う行き先の出発便）</text>
-        <text x="518" y="398" font-size="11" class="mono">10:30 羽田　定刻</text>
-        <text x="518" y="418" font-size="11" class="mono warn">11:00 羽田　欠航</text>
+      <svg viewBox="0 0 800 450" role="img" aria-label="大型モニターの画面構成。上半分に札幌と東京の暗い地図を左右に並べ、それぞれに拠点の印、右上にライブ映像の枠、下端に天気・気温・降水確率・警報注意報の帯。下半分は発車標風の黒い表示板で、見出しに設置場所名と時刻、左に CO2・室温・湿度の値と状態、右に LED の点の 24 時間グラフ、一番下にお知らせ">
+        <rect x="1" y="1" width="798" height="448" rx="6" fill="#050505" stroke="var(--line)"/>
+        <!-- 地図 2 枚 -->
+        <rect x="8" y="8" width="389" height="198" fill="#15171a"/>
+        <rect x="403" y="8" width="389" height="198" fill="#15171a"/>
+        <g stroke="#2c3138" stroke-width="2" fill="none">
+          <path d="M20 60 L180 120 L380 90"/><path d="M60 190 L200 40"/><path d="M415 150 L600 70 L780 120"/><path d="M500 200 L560 20"/>
+        </g>
+        <rect x="16" y="16" width="86" height="28" fill="#050505" stroke="#2a2a2a"/>
+        <text x="26" y="36" font-size="15" style="fill:#eeeeea">札幌</text><text x="60" y="36" font-size="9" style="fill:#8a8a84">SAPPORO</text>
+        <rect x="411" y="16" width="86" height="28" fill="#050505" stroke="#2a2a2a"/>
+        <text x="421" y="36" font-size="15" style="fill:#eeeeea">東京</text><text x="455" y="36" font-size="9" style="fill:#8a8a84">TOKYO</text>
+        <rect x="150" y="96" width="10" height="10" fill="#ffa21a"/><rect x="560" y="96" width="10" height="10" fill="#ffa21a"/>
+        <rect x="280" y="16" width="108" height="62" fill="#111" stroke="#2a2a2a"/><text x="290" y="34" font-size="9" style="fill:#ff4a3d">● LIVE</text><text x="290" y="56" font-size="9" style="fill:#8a8a84">ライブ映像</text>
+        <rect x="675" y="16" width="108" height="62" fill="#111" stroke="#2a2a2a"/><text x="685" y="34" font-size="9" style="fill:#ff4a3d">● LIVE</text><text x="685" y="56" font-size="9" style="fill:#8a8a84">ライブ映像</text>
+        <rect x="8" y="170" width="389" height="36" fill="#0a0a0a"/><text x="16" y="193" font-size="11" style="fill:#eeeeea">雪　2℃　4/-2℃　60%　<tspan style="fill:#ffa21a">大雪注意報</tspan></text>
+        <rect x="403" y="170" width="389" height="36" fill="#0a0a0a"/><text x="411" y="193" font-size="11" style="fill:#eeeeea">晴れ　14℃　17/8℃　0%　<tspan style="fill:#46e07a">発表なし</tspan></text>
+        <!-- 表示板 -->
+        <rect x="8" y="214" width="784" height="34" fill="#0d0d0d"/>
+        <text x="20" y="237" font-size="14" style="fill:#eeeeea">札幌オフィス　室内環境</text>
+        <text x="782" y="240" font-size="22" style="fill:#ffa21a" text-anchor="end">09:06</text>
+        <line x1="8" y1="248" x2="792" y2="248" stroke="#2a2a2a" stroke-width="2"/>
+        <text x="20" y="290" font-size="16" style="fill:#eeeeea">CO₂</text><text x="230" y="296" font-size="38" style="fill:#ffa21a" text-anchor="end">1176</text><text x="236" y="296" font-size="11" style="fill:#8a8a84">ppm</text><text x="290" y="292" font-size="20" style="fill:#ffa21a">要換気</text>
+        <line x1="8" y1="310" x2="440" y2="310" stroke="#2a2a2a" stroke-width="2"/>
+        <text x="20" y="336" font-size="13" style="fill:#eeeeea">室温</text><text x="230" y="338" font-size="20" style="fill:#eeeeea" text-anchor="end">21.6</text><text x="290" y="337" font-size="15" style="fill:#46e07a">基準内</text>
+        <line x1="8" y1="350" x2="440" y2="350" stroke="#2a2a2a" stroke-width="2"/>
+        <text x="20" y="376" font-size="13" style="fill:#eeeeea">湿度</text><text x="230" y="378" font-size="20" style="fill:#eeeeea" text-anchor="end">44</text><text x="290" y="377" font-size="15" style="fill:#46e07a">基準内</text>
+        <line x1="440" y1="248" x2="440" y2="410" stroke="#2a2a2a" stroke-width="2"/>
+        <text x="456" y="272" font-size="11" style="fill:#c8c8c2">CO₂　過去24時間</text>
+        <g fill="#46e07a">
+          <rect x="460" y="360" width="300" height="30" fill="none"/>
+        </g>
+        <g>
+          <path d="M460 395 h300" stroke="#1a1a1a" stroke-width="40" stroke-dasharray="3 4"/>
+          <path d="M460 380 h80" stroke="#ffa21a" stroke-width="10" stroke-dasharray="3 4"/>
+          <path d="M560 375 h90" stroke="#ffa21a" stroke-width="20" stroke-dasharray="3 4"/>
+          <path d="M600 365 h30" stroke="#ff4a3d" stroke-width="10" stroke-dasharray="3 4"/>
+          <path d="M460 400 h300" stroke="#46e07a" stroke-width="10" stroke-dasharray="3 4"/>
+        </g>
+        <rect x="8" y="412" width="784" height="30" fill="#0a0a0a"/>
+        <text x="20" y="432" font-size="13" style="fill:#ffa21a">お知らせ</text><text x="90" y="432" font-size="13" style="fill:#eeeeea">CO₂ が基準の 1000ppm を超えています。窓を開けて換気してください。</text>
       </svg>
     </div>
-    <p class="caption">値・路線名・便は表示例。時間帯で配置を変えることも検討する（夕方〜夜は鉄道を大きく、日中はナウキャストと CO2 を主に）。鉄道と飛行機はデータの入手先を調査中（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>・<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。</p>
+    <p class="caption">値は表示例。上半分の地図は 2 拠点（札幌・東京）まで並べられる。気象の帯とライブ映像は未実装で、中身ができるまで画面には出さない。飛行機は ODPT の JAL・ANA 便を使う見込みで、出し方を検討中（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/13">#13</a>）。鉄道は札幌と JR の公式データがない（<a href="https://github.com/shiwaku/raspberrypi-env-station/issues/12">#12</a>）。</p>
   </section>
 
   <!-- 3. システム構成 -->
@@ -493,8 +497,8 @@ svg .cable { stroke: var(--muted); stroke-width: 4; fill: none; stroke-linecap: 
       </div>
       <div class="card">
         <h3>Web ダッシュボード（地図・CO2 まで実装）</h3>
-        <p class="mono" style="font-size:13px">env-dashboard · SvelteKit・MapLibre GL JS・TypeScript・DADS</p>
-        <p>Pi 上の小さな Web サーバーが <code>127.0.0.1</code> だけで配信し、起動時に Chromium の全画面表示で 60 インチ以上の大型モニターに映す（出力は 1920×1080、3〜5m 離れて読める文字の大きさ）。共用 Wi-Fi の他の入居者からは開けない。見た目はデジタル庁デザインシステム（DADS）のトークンで揃え、明るい画面にする。背景地図の地理院タイル（淡色地図・標準地図・シームレス空中写真を切り替え）に設置場所と高解像度降水ナウキャストを重ね、横に CO2・温湿度のグラフと警報・災危通報の一覧を並べる。</p>
+        <p class="mono" style="font-size:13px">env-dashboard · SvelteKit・MapLibre GL JS・TypeScript</p>
+        <p>Pi 上の小さな Web サーバーが <code>127.0.0.1</code> だけで配信し、起動時に Chromium の全画面表示で 60 インチ以上の大型モニターに映す（出力は 1920×1080、3〜5m 離れて読める文字の大きさ）。共用 Wi-Fi の他の入居者からは開けない。見た目は駅や空港の発車標のような、黒地に LED の色で光る表示板にする（文字は日本語のドット書体 DotGothic16）。上半分に札幌・東京など拠点の暗い地図（地理院タイルの淡色地図を反転）を並べ、それぞれに天気・気温・降水確率・警報注意報とライブ映像を添える。下半分に室内の CO2・温湿度の値と状態、LED の点の 24 時間グラフを出し、一番下にお知らせを流す。</p>
       </div>
     </div>
 

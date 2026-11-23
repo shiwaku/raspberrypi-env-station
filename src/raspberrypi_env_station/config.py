@@ -21,7 +21,16 @@ class Station:
     longitude: float
 
 
-BASEMAPS = ("pale", "std", "seamlessphoto")  # 地理院タイルの種類
+@dataclass(frozen=True)
+class Office:
+    """ダッシュボードの地図に並べる拠点（札幌・東京など）。WGS84。"""
+
+    name: str
+    latitude: float
+    longitude: float
+    label: str = ""  # 地図の札に添える英字（SAPPORO など）
+    # MapLibre のズーム。512px のタイルが基準なので、地理院タイル（256px）のズームより 1 小さい
+    zoom: float = 12
 
 
 @dataclass(frozen=True)
@@ -30,8 +39,7 @@ class DashboardConfig:
 
     host: str = "127.0.0.1"  # 共用 Wi-Fi から開けないよう Pi 自身だけで待ち受ける
     port: int = 8080
-    basemaps: tuple[str, ...] = ("pale",)  # 2 つ以上なら順に切り替える
-    basemap_interval_s: float = 600  # 背景地図を切り替える間隔（秒）
+    offices: tuple[Office, ...] = ()  # 空なら設置場所（station）を 1 つだけ出す
 
 
 @dataclass(frozen=True)
@@ -50,26 +58,43 @@ def parse_station(data: dict[str, Any] | None) -> Station | None:
     if not data:
         return None
     lat, lon = float(data["latitude"]), float(data["longitude"])
+    _check_lat_lon(lat, lon)
+    return Station(name=str(data.get("name", "")), latitude=lat, longitude=lon)
+
+
+def _check_lat_lon(lat: float, lon: float) -> None:
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
         raise ValueError(f"緯度経度が範囲外です: {lat}, {lon}")
-    return Station(name=str(data.get("name", "")), latitude=lat, longitude=lon)
+
+
+def parse_office(data: dict[str, Any]) -> Office:
+    lat, lon = float(data["latitude"]), float(data["longitude"])
+    _check_lat_lon(lat, lon)
+    zoom = float(data.get("zoom", 12))
+    if not 0 <= zoom <= 18:
+        raise ValueError(f"zoom は 0〜18 にしてください: {zoom}")
+    return Office(
+        name=str(data["name"]),
+        latitude=lat,
+        longitude=lon,
+        label=str(data.get("label", "")),
+        zoom=zoom,
+    )
+
+
+MAX_OFFICES = 2  # 画面の上半分に並べられる数
 
 
 def parse_dashboard(data: dict[str, Any] | None) -> DashboardConfig:
     if not data:
         return DashboardConfig()
-    basemaps = tuple(data.get("basemaps", ["pale"]))
-    unknown = [b for b in basemaps if b not in BASEMAPS]
-    if not basemaps or unknown:
-        raise ValueError(f"未対応の背景地図: {unknown}（{list(BASEMAPS)} から選ぶ）")
-    interval = float(data.get("basemap_interval_s", 600))
-    if interval <= 0:
-        raise ValueError("basemap_interval_s は正の数にしてください")
+    offices = tuple(parse_office(o) for o in data.get("offices", []))
+    if len(offices) > MAX_OFFICES:
+        raise ValueError(f"dashboard.offices は {MAX_OFFICES} つまでにしてください")
     return DashboardConfig(
         host=str(data.get("host", "127.0.0.1")),
         port=int(data.get("port", 8080)),
-        basemaps=basemaps,
-        basemap_interval_s=interval,
+        offices=offices,
     )
 
 

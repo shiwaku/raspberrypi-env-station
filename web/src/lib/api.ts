@@ -1,17 +1,23 @@
 // env-dashboard（Python）の API。時刻は UTC の ISO 8601 文字列。
 
-export type Basemap = 'pale' | 'std' | 'seamlessphoto';
-
 export interface Station {
 	name: string;
 	latitude: number;
 	longitude: number;
 }
 
+/** 画面の上半分に並べる拠点（札幌・東京など） */
+export interface Office {
+	name: string;
+	label: string;
+	latitude: number;
+	longitude: number;
+	zoom: number;
+}
+
 export interface DashboardConfig {
 	station: Station | null;
-	basemaps: Basemap[];
-	basemap_interval_s: number;
+	offices: Office[];
 }
 
 export interface Latest {
