@@ -111,7 +111,7 @@ Pi 4 の映像出力は micro-HDMI。**micro-HDMI to HDMI ケーブル**でモ�
   - 画面の端が欠けるときは、テレビの画面サイズ設定を「全画素表示」「ジャストスキャン」などにする
   - 有機 EL は同じ画面を出し続けると焼き付くことがある。液晶ならまず問題ない。有機 EL なら夜間は画面を消す
 - ダッシュボードは 3〜5m 離れて読める文字の大きさで作る（CO2 の現在値は大きく、細かい表は載せない）
-- ダッシュボードは起動時に Chromium の全画面表示（キオスク表示）で開くよう設定する（ダッシュボード実装時に手順を追加）
+- ダッシュボードは起動時に Chromium の全画面表示（キオスク表示）で開く（「起動時に自動で動かす」を参照）
 
 ### I2C を有効にする（Pi で作業）
 
@@ -164,7 +164,7 @@ cd ..
 uv run env-dashboard   # http://127.0.0.1:8080/ を Pi の Chromium で開く
 ```
 
-画面だけを直すときは、`uv run env-dashboard` を動かしたまま `cd web && pnpm dev` で開発用サーバーを起動する（API は 8080 に中継される）。起動時に全画面で開く設定は [#10](https://github.com/shiwaku/raspberrypi-env-station/issues/10) で追加する。
+画面だけを直すときは、`uv run env-dashboard` を動かしたまま `cd web && pnpm dev` で開発用サーバーを起動する（API は 8080 に中継される）。起動時に全画面で開く設定は「起動時に自動で動かす」を参照。
 
 ## 災危通報の受信
 
@@ -176,7 +176,8 @@ MAX-M10S は I2C でつなぐので、I2C（0x42）から読んだデータを `
 # 1. 中継プログラム（127.0.0.1:2101 で待ち受ける）
 uv run gnss-relay          # 先に uv sync --extra pi をしておく
 
-# 2. 別の端末で qzss_dcr（L1S を有効にする設定も送る）
+# 2. 別の端末で qzss_dcr（L1S を有効にする設定も送る）。ホームに clone する（自動起動の設定がこの場所を前提にしている）
+cd ~
 git clone https://github.com/fractional-n/qzss_dcr.git
 cd qzss_dcr
 python3 -m venv .venv && .venv/bin/pip install 'azarashi>=0.17.1,<0.18' pyserial
@@ -187,9 +188,38 @@ python3 -m venv .venv && .venv/bin/pip install 'azarashi>=0.17.1,<0.18' pyserial
 - I2C の読み書きに失敗しても（配線の抜き差しなど）止まらず、qzss_dcr とつないだままやり直す
 - qzss_dcr の作者が用意した記録データ（`samples/demo_l1s.ubx`・`demo_dcx.ubx`）を偽の受信機から流し、中継を通して MT43・MT44 が日本語になること、`--configure-m10` の設定がそのまま受信機側へ届くことを確かめた。実機ではまだ動かしていない
 
-`--configure-m10` の設定は MAX-M10S の RAM にだけ書かれ、電源を切ると消える。起動のたびに付けるか、`--persist` で BBR（バックアップ用のメモリ）にも書く。
+`--configure-m10` の設定は MAX-M10S の RAM にだけ書かれ、電源を切ると消える。起動のたびに付けるか、`--persist` で BBR（バックアップ用のメモリ）にも書く。自動起動の設定（`deploy/systemd/qzss-dcr.service`）では、起動のたびに付けている。
 
 アンテナは南向きの窓際に置く。静止軌道の QZS-3 が南の空にいるため。みちびきが見えていれば、災危通報の枠（MT43 と MT44）はそれぞれ 4 秒ごとに届く。平常時は中身のない通報なので、画面には何も出ない。配信される情報と頻度、ネット配信との違い、法的な位置づけ、L1S 信号の仕様、訓練配信の日程は [みちびき災危通報の整理](https://shiwaku.github.io/raspberrypi-env-station/qzss-dcr.html)（元ファイルは [docs/qzss-dcr.html](docs/qzss-dcr.html)）にまとめた。
+
+## 起動時に自動で動かす
+
+停電や再起動のあとも、人の操作なしで計測・ダッシュボード・受信が再開するようにする。上の手順で `uv sync --extra pi`・`config.toml`・`web/build` を用意してから実行する。
+
+```sh
+cd ~/raspberrypi-env-station
+deploy/install.sh               # 計測・ダッシュボード・キオスク表示
+deploy/install.sh --with-gnss   # MAX-M10S をつなぎ、~/qzss_dcr を用意してから。中継と災危通報の受信も足す
+sudo reboot
+```
+
+- `deploy/systemd/` のユニットを systemd のユーザーサービスとして入れる。ログインしていなくても起動時に動くよう、linger を有効にする（初回だけ sudo を使う）
+  - `env-station`：計測
+  - `env-dashboard`：ダッシュボードの配信（127.0.0.1:8080）
+  - `gnss-relay`：MAX-M10S の I2C と TCP の中継
+  - `qzss-dcr`：災危通報の受信。通報は `data/qzss_dcr/日付.jsonl` に追記する
+- どれも止まったら自動で起動し直す
+- デスクトップにログインすると、`deploy/kiosk/start-kiosk.sh` が env-dashboard の起動を待ってから Chromium を全画面で開く（`~/.config/autostart/env-kiosk.desktop` から起動）。抜けるときは Alt+F4
+- リポジトリは `~/raspberrypi-env-station` に置く。ユニットファイルがこの場所を前提にしている
+- 手で `uv run env-station` などを動かしているときは止めてから実行する。I2C やポートを取り合う
+- ユニットファイルを直したら、もう一度 `deploy/install.sh` を実行すると反映される
+- 画面を作り直して `web/build` を再ビルドしたときは、サービスの再起動はいらない。Chromium で F5 を押して読み直す
+
+```sh
+systemctl --user status env-station env-dashboard   # 動いているか
+journalctl --user -u env-station -f                 # ログ
+systemctl --user restart env-station env-dashboard  # config.toml を変えたあと
+```
 
 ## データ
 
