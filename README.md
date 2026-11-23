@@ -142,6 +142,12 @@ uv run env-station                   # interval_s ごとに計測し続ける（
 
 ## ダッシュボード（大型モニター）
 
+![室内環境のページ。上に札幌と東京の暗い地図と気象の帯、下に札幌オフィスの CO2・室温・湿度と 24 時間のグラフ](docs/images/dashboard-indoor.jpg)
+
+![運行状況のページ。新千歳⇔羽田の JAL・ANA 便と東京の地下鉄の運行情報](docs/images/dashboard-transit.jpg)
+
+画像は 2026-11-23 12:35 の表示。気象と運行状況は実際のデータ、室内環境はダミーデータ。
+
 画面は SvelteKit と MapLibre GL JS（TypeScript）で作り、`web/` で静的ファイルにビルドする。
 Python の `env-dashboard` がそのファイルと計測値の API（`/api/config`・`/api/latest`・`/api/series`）を `127.0.0.1:8080` で配信する。
 見た目は駅や空港の発車標のような、黒地に LED の色で光る表示板にしている。文字は日本語のドット書体 [DotGothic16](https://fonts.google.com/specimen/DotGothic16)（OFL、`@fontsource/dotgothic16`）で、ビルドに同梱するのでネットがなくても出る。
