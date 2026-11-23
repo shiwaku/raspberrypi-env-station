@@ -48,6 +48,24 @@ def station(config: Config, conn: sqlite3.Connection | None) -> dict[str, Any] |
     return None if row is None else {"name": row[0], "latitude": row[1], "longitude": row[2]}
 
 
+def offices(config: Config, st: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """地図に並べる拠点。設定が無ければ設置場所を 1 つだけ出す。"""
+    if config.dashboard.offices:
+        return [
+            {
+                "name": o.name,
+                "label": o.label,
+                "latitude": o.latitude,
+                "longitude": o.longitude,
+                "zoom": o.zoom,
+            }
+            for o in config.dashboard.offices
+        ]
+    if st is None:
+        return []
+    return [{**st, "label": "", "zoom": 12}]
+
+
 def latest(conn: sqlite3.Connection | None) -> dict[str, Any]:
     """指標ごとの最新値。値が無い指標は None。"""
     result: dict[str, Any] = {"ts": None, **dict.fromkeys(METRICS)}
@@ -106,12 +124,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
         try:
             match path:
                 case "/api/config":
-                    dash = self.config.dashboard
-                    body: Any = {
-                        "station": station(self.config, conn),
-                        "basemaps": list(dash.basemaps),
-                        "basemap_interval_s": dash.basemap_interval_s,
-                    }
+                    st = station(self.config, conn)
+                    body: Any = {"station": st, "offices": offices(self.config, st)}
                 case "/api/latest":
                     body = latest(conn)
                 case "/api/series":

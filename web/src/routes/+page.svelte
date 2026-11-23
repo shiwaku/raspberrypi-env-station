@@ -9,35 +9,39 @@
 		type Point
 	} from '#lib/api.ts';
 	import {
-		CO2_BADGE_CLASS,
-		CO2_DOT_CLASS,
-		CO2_LIMIT,
-		CO2_MESSAGE,
-		CO2_TEXT_CLASS,
-		co2Level
+		CO2_STATUS,
+		co2Level,
+		HUMIDITY_RANGE,
+		inRange,
+		LEVEL_TEXT,
+		TEMP_RANGE
 	} from '#lib/co2.ts';
-	import LineChart from '#lib/LineChart.svelte';
-	import StationMap from '#lib/StationMap.svelte';
+	import DotChart from '#lib/DotChart.svelte';
+	import { buildNotices } from '#lib/notices.ts';
+	import OfficeMap from '#lib/OfficeMap.svelte';
+	import Ticker from '#lib/Ticker.svelte';
 
 	const LATEST_INTERVAL_MS = 30_000;
 	const SERIES_INTERVAL_MS = 5 * 60_000;
-	const STALE_MS = 5 * 60_000; // これより古い値しか無ければ「届いていない」と出す
-	const PANEL_W = 300; // 右のパネルの幅（960×540 の画面上）
-	const GAP = 12;
+	const STALE_MS = 5 * 60_000; // これより古い値しか無ければ「受信なし」と出す
+	// 画面は 1920×1080 で組み、ウィンドウに合わせて拡大・縮小する
+	const W = 1920;
+	const H = 1080;
 
 	let config = $state<DashboardConfig | null>(null);
 	let latest = $state<Latest | null>(null);
 	let co2Series = $state<Point[]>([]);
 	let now = $state(Date.now());
-	let innerWidth = $state(1920);
-	let innerHeight = $state(1080);
-	// 画面は 960×540 で組み、ウィンドウに合わせて拡大する（1920×1080 なら 2 倍）。
-	// DADS の文字スタイルをそのまま使い、2 倍にして 3〜5m 離れても読める大きさにする
-	let scale = $derived(Math.min(innerWidth / 960, innerHeight / 540));
+	let innerWidth = $state(W);
+	let innerHeight = $state(H);
+	let scale = $derived(Math.min(innerWidth / W, innerHeight / H));
 	let error = $state<string | null>(null);
 
-	let level = $derived(latest?.co2_ppm != null ? co2Level(latest.co2_ppm) : null);
 	let stale = $derived(!latest?.ts || now - Date.parse(latest.ts) > STALE_MS);
+	let co2 = $derived(stale ? null : (latest?.co2_ppm ?? null));
+	let temp = $derived(stale ? null : (latest?.temperature_c ?? null));
+	let humidity = $derived(stale ? null : (latest?.humidity_pct ?? null));
+	let notices = $derived(buildNotices(latest, stale, error));
 
 	async function refreshLatest() {
 		try {
@@ -70,104 +74,135 @@
 		return () => timers.forEach(clearInterval);
 	});
 
-	const fmt = (v: number | null | undefined, digits: number) =>
-		v == null ? '—' : v.toLocaleString('ja-JP', { maximumFractionDigits: digits, minimumFractionDigits: digits });
-	const timeOf = (t: number) =>
-		new Date(t).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-	let date = $derived(
-		new Date(now).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })
+	const fmt = (v: number | null, digits: number) =>
+		v == null ? '—' : v.toFixed(digits);
+	let time = $derived(
+		new Date(now).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
 	);
+	let date = $derived.by(() => {
+		const d = new Date(now);
+		const wd = d.toLocaleDateString('ja-JP', { weekday: 'short' });
+		return `${d.getMonth() + 1}月${d.getDate()}日(${wd})`;
+	});
+
+	// 行ごとの表示（値・単位・状態・色）
+	let rows = $derived([
+		{
+			key: 'CO₂',
+			value: co2 == null ? '—' : String(Math.round(co2)),
+			unit: 'ppm',
+			status: co2 == null ? '受信なし' : CO2_STATUS[co2Level(co2)],
+			valueClass: co2 == null ? 'text-led-dim' : LEVEL_TEXT[co2Level(co2)],
+			statusClass: co2 == null ? 'text-led-dim' : LEVEL_TEXT[co2Level(co2)],
+			big: true
+		},
+		{
+			key: '室温',
+			value: fmt(temp, 1),
+			unit: '℃',
+			status: temp == null ? '—' : inRange(temp, TEMP_RANGE) ? '基準内' : '基準外',
+			valueClass: temp == null ? 'text-led-dim' : 'text-led-white',
+			statusClass:
+				temp == null ? 'text-led-dim' : inRange(temp, TEMP_RANGE) ? 'text-led-green' : 'text-led-amber',
+			big: false
+		},
+		{
+			key: '湿度',
+			value: fmt(humidity, 0),
+			unit: '%',
+			status: humidity == null ? '—' : inRange(humidity, HUMIDITY_RANGE) ? '基準内' : '基準外',
+			valueClass: humidity == null ? 'text-led-dim' : 'text-led-white',
+			statusClass:
+				humidity == null
+					? 'text-led-dim'
+					: inRange(humidity, HUMIDITY_RANGE)
+						? 'text-led-green'
+						: 'text-led-amber',
+			big: false
+		}
+	]);
+
+	const GRID = 'grid grid-cols-[170px_1fr_110px_330px] items-center px-9';
 </script>
 
 <svelte:window bind:innerWidth bind:innerHeight />
 
 <main
-	class="relative h-[540px] w-[960px] origin-top-left overflow-hidden bg-solid-gray-100"
+	class="relative origin-top-left overflow-hidden bg-black"
+	style:width="{W}px"
+	style:height="{H}px"
 	style:transform="scale({scale})"
 >
-	{#if config}
-		<StationMap
-			station={config.station}
-			basemaps={config.basemaps}
-			intervalS={config.basemap_interval_s}
-			{scale}
-			padRight={PANEL_W + GAP * 2}
-		/>
-	{/if}
+	<!-- 上半分：拠点の地図（2 つまで横に並べる） -->
+	<section class="absolute inset-x-0 top-0 grid h-[500px] gap-1.5 bg-black"
+		style:grid-template-columns="repeat({Math.max(config?.offices.length ?? 1, 1)}, 1fr)">
+		{#each config?.offices ?? [] as office (office.name)}
+			<OfficeMap {office} {scale} />
+		{/each}
+	</section>
 
-	<aside
-		class="absolute flex flex-col gap-4 rounded-16 bg-white p-5 shadow-4"
-		style:top="{GAP}px"
-		style:right="{GAP}px"
-		style:bottom="{GAP}px"
-		style:width="{PANEL_W}px"
+	<!-- 下半分：発車標風の表示板 -->
+	<section
+		class="led-grain absolute inset-x-0 bottom-0 flex h-[580px] flex-col border-t-[6px] border-[#1d1d1d] bg-ink"
 	>
-		<header class="flex items-baseline justify-between">
-			<span class="text-dns-16N-130 text-solid-gray-600">{date}</span>
-			<time class="text-std-32B-150 tabular-nums">{timeOf(now)}</time>
+		<header class="flex items-center justify-between border-b-[3px] border-rule bg-plate px-9 py-3.5">
+			<h1 class="m-0 text-[40px] font-normal tracking-[0.12em]">
+				{config?.station?.name ?? ''}{config?.station?.name ? '　' : ''}室内環境<small
+					class="ml-[18px] text-[24px] tracking-[0.1em] text-led-dim">INDOOR</small
+				>
+			</h1>
+			<div class="flex items-baseline gap-[22px]">
+				<span class="text-[32px] text-led-dim">{date}</span>
+				<time class="text-[64px] leading-none tracking-[0.04em] text-led-amber">{time}</time>
+			</div>
 		</header>
 
-		<section>
-			<h2 class="text-dns-16B-130 text-solid-gray-600">CO₂ 濃度</h2>
-			<p class="mt-1 flex items-baseline gap-2">
-				<span class="text-dsp-64B-140 tabular-nums {level ? CO2_TEXT_CLASS[level] : ''}">
-					{fmt(latest?.co2_ppm, 0)}
-				</span>
-				<span class="text-std-20N-150 text-solid-gray-600">ppm</span>
-			</p>
-			{#if level}
-				<p
-					class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-dns-16B-130 {CO2_BADGE_CLASS[
-						level
-					]}"
-				>
-					<span class="size-2 rounded-full {CO2_DOT_CLASS[level]}"></span>
-					{CO2_MESSAGE[level]}
-				</p>
-			{/if}
-		</section>
-
-		<section class="grid grid-cols-2 gap-2">
-			{#each [{ label: '室温', value: fmt(latest?.temperature_c, 1), unit: '℃' }, { label: '湿度', value: fmt(latest?.humidity_pct, 0), unit: '%' }] as tile (tile.label)}
-				<div class="rounded-12 bg-solid-gray-50 px-4 py-2">
-					<h2 class="text-dns-14N-130 text-solid-gray-600">{tile.label}</h2>
-					<p class="flex items-baseline gap-1">
-						<span class="text-std-28B-150 tabular-nums">{tile.value}</span>
-						<span class="text-dns-16N-130 text-solid-gray-600">{tile.unit}</span>
-					</p>
+		<div class="grid min-h-0 flex-1 grid-cols-[1fr_820px]">
+			<div class="flex flex-col border-r-[3px] border-rule">
+				<div class="{GRID} bg-[#1b1b1b] py-2.5 text-[24px] tracking-[0.2em] text-[#c8c8c2]">
+					<span>項目</span><span class="text-right">現在</span><span></span><span class="pl-9"
+						>状態</span
+					>
 				</div>
-			{/each}
-		</section>
-
-		<section class="flex min-h-0 flex-1 flex-col gap-1">
-			<div class="flex items-center justify-between">
-				<h2 class="text-dns-14B-130 text-solid-gray-600">過去 24 時間（ppm）</h2>
-				<span class="flex items-center gap-1 text-dns-14N-130 text-solid-gray-600">
-					<svg width="16" height="2" class="block" aria-hidden="true">
-						<line x1="0" x2="16" y1="1" y2="1" stroke="var(--color-warning-orange-1)" stroke-width="2" stroke-dasharray="4 3" />
-					</svg>
-					基準 {CO2_LIMIT.toLocaleString('ja-JP')}
-				</span>
+				{#each rows as row, i (row.key)}
+					<div
+						class="{GRID} {row.big ? 'h-[140px]' : 'h-20'} {i < rows.length - 1
+							? 'border-b-[3px] border-rule'
+							: ''}"
+					>
+						<span class="{row.big ? 'text-[48px]' : 'text-[36px]'} tracking-[0.16em]">{row.key}</span>
+						<span
+							class="text-right leading-none tabular-nums {row.big
+								? 'text-[124px]'
+								: 'text-[60px]'} {row.valueClass}">{row.value}</span
+						>
+						<span
+							class="self-end pl-3.5 text-led-dim {row.big
+								? 'pb-[22px] text-[40px]'
+								: 'pb-2.5 text-[30px]'}">{row.unit}</span
+						>
+						<span
+							class="pl-9 tracking-[0.14em] {row.big ? 'text-[56px]' : 'text-[46px]'} {row.statusClass}"
+							>{row.status}</span
+						>
+					</div>
+				{/each}
 			</div>
-			<div class="min-h-0 flex-1">
-				<LineChart points={co2Series} threshold={CO2_LIMIT} />
+
+			<div class="flex flex-col px-9 pt-[22px] pb-[18px]">
+				<div class="mb-3 flex justify-between text-[26px] tracking-[0.14em] text-[#c8c8c2]">
+					<span>CO₂　過去24時間</span>
+					<span
+						><span class="text-led-green">■</span>〜1000 <span class="text-led-amber">■</span
+						>1000〜 <span class="text-led-red">■</span>1500〜</span
+					>
+				</div>
+				<div class="min-h-0 flex-1">
+					<DotChart points={co2Series} />
+				</div>
 			</div>
-		</section>
-
-		<footer class="text-dns-14N-130 text-solid-gray-536">
-			{#if stale}
-				<span class="font-bold text-warning-orange-2">計測値が届いていません</span>
-			{:else if latest?.ts}
-				{timeOf(Date.parse(latest.ts))} 計測
-			{/if}
-		</footer>
-	</aside>
-
-	{#if error}
-		<div
-			class="absolute bottom-10 left-3 rounded-8 bg-error-2 px-3 py-2 text-dns-14N-130 text-white shadow-2"
-		>
-			{error}
 		</div>
-	{/if}
+
+		<Ticker {notices} />
+	</section>
 </main>

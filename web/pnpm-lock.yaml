@@ -175,13 +175,13 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/dotgothic16':
+        specifier: ^5.3.1
+        version: 5.3.1
       maplibre-gl:
         specifier: ^6.18.0
         version: 6.18.0
     devDependencies:
-      '@digital-go-jp/tailwind-theme-plugin':
-        specifier: ^2.0.0
-        version: 2.0.0(tailwindcss@4.3.5)
       '@sveltejs/adapter-static':
         specifier: ^4.0.1
         version: 4.0.1(@sveltejs/kit@3.2.0(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.8(jiti@2.7.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.8(jiti@2.7.0)))
@@ -215,11 +215,6 @@ importers:
 
 packages:
 
-  '@digital-go-jp/tailwind-theme-plugin@2.0.0':
-    resolution: {integrity: sha512-u77xBcxBshOhV75dN/1W5eVA0R0Ko0lGwni1jnG+fN7dP1TMycmFyDsvNfiWzKCCxg2+bFRINvBjnXloLUEfHQ==}
-    peerDependencies:
-      tailwindcss: ^3.4.17 || ^4.0.0
-
   '@emnapi/core@2.0.0-beta.2':
     resolution: {integrity: sha512-MzCVoWtcg4Pm2B3je5mMvYMvj3MmBKw+fU7vbsJc9/iT8ip6/eYIHo/Dsm/mr+wsHB6SEyJDuxB09Yy6r/8+4A==}
 
@@ -228,6 +223,9 @@ packages:
 
   '@emnapi/wasi-threads@2.2.0':
     resolution: {integrity: sha512-JP7OYH38Q7+pyTAe14raZHLQIK7BDKbdwji+Xi3pcd/6QkJYQH3SX4wu6EplGrGJWRepoNzedfm0G3B9Z4e9Rw==}
+
+  '@fontsource/dotgothic16@5.3.1':
+    resolution: {integrity: sha512-alvxJchrFDFohce0s8YfHsFiRm2zUM+FrwEeWtLyc14WIl3heSG1/8BPD7Sm001YuVPL1bU14UmM5P2KO5/gnQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1011,10 +1009,6 @@ packages:
 
 snapshots:
 
-  '@digital-go-jp/tailwind-theme-plugin@2.0.0(tailwindcss@4.3.5)':
-    dependencies:
-      tailwindcss: 4.3.5
-
   '@emnapi/core@2.0.0-beta.2':
     dependencies:
       '@emnapi/wasi-threads': 2.2.0
@@ -1030,6 +1024,8 @@ snapshots:
     dependencies:
       tslib: 2.9.1
     optional: true
+
+  '@fontsource/dotgothic16@5.3.1': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

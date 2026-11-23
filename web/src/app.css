@@ -1,67 +1,92 @@
 @import 'tailwindcss';
-/* デジタル庁デザインシステム（DADS）のデザイントークン */
-@import '@digital-go-jp/tailwind-theme-plugin/v4';
+/* 発車標の LED のような日本語ドット書体（OFL）。ビルドに同梱するので、ネットがなくても出る */
+@import '@fontsource/dotgothic16/400.css';
 
+/* 駅・空港の発車標のような、黒地に LED の色で光る表示板 */
 @theme {
-	/* DADS の指定は Noto Sans JP。Raspberry Pi OS の fonts-noto-cjk は同じ字形を
-	   「Noto Sans CJK JP」の名前で入れるので、後ろに足しておく */
-	--font-sans: 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif;
+	--font-dot: 'DotGothic16', 'Noto Sans CJK JP', monospace;
+	--color-ink: #050505; /* 表示板の地 */
+	--color-plate: #0d0d0d; /* 見出しの帯 */
+	--color-rule: #2a2a2a; /* 行の区切り */
+	--color-off: #1a1a1a; /* 消えている LED */
+	--color-led-white: #eeeeea;
+	--color-led-dim: #8a8a84;
+	--color-led-amber: #ffa21a;
+	--color-led-green: #46e07a;
+	--color-led-red: #ff4a3d;
 }
 
 html,
 body {
 	height: 100%;
 	margin: 0;
-	font-family: var(--font-sans);
-	background: var(--color-solid-gray-50);
-	color: var(--color-solid-gray-800);
+	background: #000;
+	color: var(--color-led-white);
+	font-family: var(--font-dot);
 	overflow: hidden; /* 大型モニターに出しっぱなしにするのでスクロールさせない */
 	cursor: none;
 }
 
-/* 設置場所の印。キーカラーの点に、ゆっくり広がる波紋を付ける */
-.station-marker {
-	width: 28px;
-	height: 28px;
-	border-radius: 9999px;
-	background: var(--color-key-900);
-	border: 5px solid var(--color-white);
-	box-shadow: var(--shadow-2);
+/* 拠点の印。橙の LED の四角が、ゆっくり明滅する */
+.office-marker {
+	width: 22px;
+	height: 22px;
+	background: var(--color-led-amber);
+	box-shadow:
+		0 0 0 6px rgb(255 162 26 / 0.25),
+		0 0 0 22px rgb(255 162 26 / 0.1),
+		0 0 24px 4px rgb(255 162 26 / 0.6);
+	animation: office-glow 2.4s ease-in-out infinite;
 }
-.station-marker::after {
-	content: '';
-	position: absolute;
-	inset: -5px;
-	border-radius: inherit;
-	background: var(--color-key-900);
-	opacity: 0;
-	animation: station-pulse 2.4s ease-out infinite;
-	z-index: -1;
-}
-@keyframes station-pulse {
-	from {
-		transform: scale(1);
-		opacity: 0.4;
-	}
-	to {
-		transform: scale(3.5);
-		opacity: 0;
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	.station-marker::after {
-		animation: none;
+@keyframes office-glow {
+	50% {
+		box-shadow:
+			0 0 0 6px rgb(255 162 26 / 0.15),
+			0 0 0 30px rgb(255 162 26 / 0.04),
+			0 0 16px 2px rgb(255 162 26 / 0.4);
 	}
 }
 
-/* 地図の出典（左下）。DADS の文字色と白地に合わせる */
-.maplibregl-ctrl-bottom-left .maplibregl-ctrl.maplibregl-ctrl-attrib {
-	margin: 0 0 12px 12px !important;
+/* 表示板の LED の粒の質感 */
+.led-grain::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background: radial-gradient(circle at 50% 50%, transparent 55%, rgb(0 0 0 / 0.45) 60%) 0 0 / 4px
+		4px;
+}
+
+/* お知らせを右から左へ流す（--ticker-s 秒で 1 周） */
+.ticker-track {
+	display: inline-block;
+	padding-left: 100%;
+	animation: ticker var(--ticker-s, 30s) linear infinite;
+}
+@keyframes ticker {
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.office-marker,
+	.ticker-track {
+		animation: none;
+	}
+	.ticker-track {
+		padding-left: 0;
+	}
+}
+
+/* 地図の出典（右上）。暗い地図に合わせる */
+.maplibregl-ctrl-top-right .maplibregl-ctrl.maplibregl-ctrl-attrib {
+	margin: 12px 12px 0 0 !important;
 	padding: 2px 8px;
-	border-radius: var(--radius-6);
-	background: rgb(255 255 255 / 0.9);
-	font-size: 12px;
-	color: var(--color-solid-gray-700);
+	background: rgb(0 0 0 / 0.6);
+	font-family: 'Noto Sans CJK JP', sans-serif;
+	font-size: 16px;
+	color: #bbb;
 }
 .maplibregl-ctrl-attrib a {
 	color: inherit;
