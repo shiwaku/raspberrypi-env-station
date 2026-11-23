@@ -69,6 +69,23 @@ export type Transit =
 			routes: [string, string][];
 	  };
 
+/** 拠点の天気予報と警報・注意報（気象庁防災情報 XML）。まだ取れていない項目は null */
+export interface OfficeWeather {
+	weather: { text: string; label: string } | null;
+	pop: { value: number; label: string } | null;
+	high: { value: number; label: string } | null;
+	low: { value: number; label: string } | null;
+	forecast_time?: string | null;
+	warnings: { name: string; status: string; level: 'advisory' | 'warning' | 'emergency' }[] | null;
+	warning_time: string | null;
+}
+
+export interface WeatherResponse {
+	offices: Record<string, OfficeWeather | null>;
+	fetched_at: string | null;
+	error: string | null;
+}
+
 export type Metric = 'co2_ppm' | 'temperature_c' | 'humidity_pct';
 export type Point = [ts: string, value: number];
 
@@ -81,6 +98,7 @@ async function getJson<T>(path: string): Promise<T> {
 export const fetchConfig = () => getJson<DashboardConfig>('/api/config');
 export const fetchLatest = () => getJson<Latest>('/api/latest');
 export const fetchTransit = () => getJson<Transit>('/api/transit');
+export const fetchWeather = () => getJson<WeatherResponse>('/api/weather');
 export const fetchSeries = (metric: Metric, hours = 24) =>
 	getJson<{ metric: Metric; points: Point[] }>(`/api/series?metric=${metric}&hours=${hours}`).then(
 		(body) => body.points

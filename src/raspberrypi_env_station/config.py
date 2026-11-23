@@ -1,11 +1,13 @@
 """TOML 設定ファイルの読み込み。"""
 
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from raspberrypi_env_station.transit import TransitConfig
+from raspberrypi_env_station.weather import WeatherArea
 
 
 @dataclass(frozen=True)
@@ -33,6 +35,7 @@ class Office:
     label: str = ""  # 地図の札に添える英字（SAPPORO など）
     # MapLibre のズーム。512px のタイルが基準なので、地理院タイル（256px）のズームより 1 小さい
     zoom: float = 12
+    weather: WeatherArea | None = None  # 天気予報と警報・注意報（気象庁）
 
 
 @dataclass(frozen=True)
@@ -82,7 +85,20 @@ def parse_office(data: dict[str, Any]) -> Office:
         longitude=lon,
         label=str(data.get("label", "")),
         zoom=zoom,
+        weather=parse_weather_area(data.get("weather")),
     )
+
+
+_CODE_LENGTHS = {"office": 6, "area": 6, "station": 5, "city": 7}
+
+
+def parse_weather_area(data: dict[str, Any] | None) -> WeatherArea | None:
+    if not data:
+        return None
+    codes = {k: str(data.get(k, "")) for k in _CODE_LENGTHS}
+    if bad := [k for k, n in _CODE_LENGTHS.items() if not re.fullmatch(rf"\d{{{n}}}", codes[k])]:
+        raise ValueError(f"weather の {bad} は気象庁のコード（数字）にしてください: {codes}")
+    return WeatherArea(**codes)
 
 
 MAX_OFFICES = 2  # 画面の上半分に並べられる数

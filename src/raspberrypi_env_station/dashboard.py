@@ -20,6 +20,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from raspberrypi_env_station.config import Config, load_config
 from raspberrypi_env_station.transit import AIRPORTS, TransitCache, sources
+from raspberrypi_env_station.weather import WeatherCache
 
 log = logging.getLogger("raspberrypi_env_station.dashboard")
 
@@ -129,10 +130,30 @@ def transit_body(config: Config, cache: TransitCache | None) -> dict[str, Any]:
     }
 
 
+def weather_body(config: Config, cache: WeatherCache | None) -> dict[str, Any]:
+    """拠点ごとの天気予報と警報・注意報。気象の設定がある拠点だけ。"""
+    if cache is None:
+        return {"offices": {}, "fetched_at": None, "error": None}
+    now = datetime.now().astimezone()
+    return {
+        "offices": {name: cache.summary(name, now) for name in cache.areas},
+        "fetched_at": (
+            datetime.fromtimestamp(cache.fetched_at, UTC).isoformat() if cache.fetched_at else None
+        ),
+        "error": cache.error,
+    }
+
+
+def make_weather(config: Config) -> WeatherCache | None:
+    areas = {o.name: o.weather for o in config.dashboard.offices if o.weather is not None}
+    return WeatherCache(areas) if areas else None
+
+
 class DashboardHandler(BaseHTTPRequestHandler):
     config: Config
     web_dir: Path
     transit: TransitCache | None = None
+    weather: WeatherCache | None = None
 
     def do_GET(self) -> None:
         url = urlsplit(self.path)
@@ -152,6 +173,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     body = latest(conn)
                 case "/api/transit":
                     body = transit_body(self.config, self.transit)
+                case "/api/weather":
+                    body = weather_body(self.config, self.weather)
                 case "/api/series":
                     metric = query.get("metric", [""])[0]
                     if metric not in METRICS:
@@ -208,8 +231,9 @@ def make_server(
     host: str,
     port: int,
     transit: TransitCache | None = None,
+    weather: WeatherCache | None = None,
 ) -> ThreadingHTTPServer:
-    attrs = {"config": config, "web_dir": web_dir, "transit": transit}
+    attrs = {"config": config, "web_dir": web_dir, "transit": transit, "weather": weather}
     handler = type("Handler", (DashboardHandler,), attrs)
     return ThreadingHTTPServer((host, port), handler)
 
@@ -234,7 +258,10 @@ def main() -> None:
     if config.transit.enabled:
         transit = TransitCache(config.transit)
         transit.start()  # interval_s ごとに ODPT から取り直す
-    server = make_server(config, args.web_dir, host, port, transit)
+    weather = make_weather(config)
+    if weather is not None:
+        weather.start()  # 気象庁のフィードを 2 分ごとに見る
+    server = make_server(config, args.web_dir, host, port, transit, weather)
     log.info("http://%s:%d/ で配信中（Ctrl+C で終了）", host, port)
     try:
         server.serve_forever()
@@ -243,6 +270,8 @@ def main() -> None:
     finally:
         if transit is not None:
             transit.stop()
+        if weather is not None:
+            weather.stop()
         server.server_close()
 
 
